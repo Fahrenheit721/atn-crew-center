@@ -4,7 +4,6 @@ import requests
 import urllib.parse
 from datetime import datetime
 import os
-import re
 import streamlit.components.v1 as components
 
 # --- 1. CONFIGURATION & STYLE ---
@@ -504,11 +503,10 @@ else:
     if selection == T("menu_home"):
         st.title(f"🌺 {T('title_home')} {st.session_state['username']}")
         
-        # Petit hack pour afficher la météo NTAA proprement sur l'accueil aussi
+        # Petit hack pour afficher la météo NTAA proprement sur l'accueil
         metar_ntaa = get_real_metar('NTAA')
         data_ntaa = extract_metar_data(metar_ntaa)
         
-        # Affichage Météo Compact sur l'accueil
         with st.expander(f"🌦️ Météo Tahiti (NTAA)", expanded=False):
             mc1, mc2, mc3 = st.columns(3)
             mc1.metric("Vent", data_ntaa["Wind"])
@@ -651,7 +649,7 @@ else:
                 else:
                     st.error("⚠️ Veuillez remplir au moins le N° de Vol, Départ et Arrivée.")
 
-    # METAR ON DEMAND (NOUVEAU LOOK)
+    # METAR ON DEMAND (NOUVEAU LOOK COMPLET)
     elif selection == T("menu_metar"):
         st.title(T("metar_title"))
         st.write(T("metar_desc"))
@@ -676,9 +674,10 @@ else:
                     # 2. Parsing "maison"
                     data = extract_metar_data(raw_metar)
                     
-                    # 3. Affichage Tableau de Bord (Cartes)
+                    # 3. Affichage Tableau de Bord (Cartes Bleues)
                     st.subheader(f"📍 {icao_search} - {T('metar_decoded')}")
                     
+                    # C'est ici que la magie opère : st.metric utilise ton CSS "bleu"
                     m1, m2, m3 = st.columns(3)
                     m1.metric("💨 Vent / Wind", data["Wind"])
                     m2.metric("🌡️ Temp.", data["Temp"])
