@@ -4,6 +4,7 @@ import requests
 import urllib.parse
 from datetime import datetime
 import os
+import re
 import streamlit.components.v1 as components
 
 # --- 1. CONFIGURATION & STYLE ---
@@ -34,6 +35,8 @@ TRANS = {
         "event_title": "Prochains événements",
         "roster_title": "L'Équipe ATN-Virtual",
         "radar_title": "Suivi des Vols en Direct",
+        "radar_desc": "Pour des raisons de sécurité imposées par fsHub, la carte ne peut pas s'afficher directement ici. Cliquez ci-dessous pour ouvrir le radar plein écran.",
+        "radar_btn": "🌍 OUVRIR LE RADAR LIVE (Nouvel Onglet)",
         "pirep_title": "Soumettre un rapport manuel (PIREP)",
         "pirep_intro": "Formulaire de secours",
         "pirep_warn": "Ce formulaire est réservé aux pilotes rencontrant des difficultés techniques avec le logiciel de suivi (LRM). L'utilisation du client automatique est recommandée pour la précision des données.",
@@ -53,10 +56,11 @@ TRANS = {
         "form_date_dep": "📅 Date de Départ",
         "form_date_arr": "📅 Date d'Arrivée",
         "metar_title": "Météo Aéronautique",
-        "metar_desc": "Consultez les dernières observations METAR en temps réel.",
-        "metar_label": "Code OACI (ex: NTAA, LFPG)",
-        "metar_btn": "🔍 Rechercher",
-        "metar_res": "Dernier bulletin pour",
+        "metar_desc": "Bulletin en temps réel & Décodage rapide.",
+        "metar_label": "Rechercher un aéroport (Code OACI)",
+        "metar_btn": "🔍 Analyser Météo",
+        "metar_raw": "Bulletin Brut (Source NOAA)",
+        "metar_decoded": "Données Clés",
         "checklist_title": "Checklist Normale A320",
         "checklist_complete": "✅ CHECKLIST COMPLETED",
         "checklist_reset": "🔄 Réinitialiser la Checklist",
@@ -84,6 +88,8 @@ TRANS = {
         "event_title": "Upcoming Events",
         "roster_title": "ATN-Virtual Team",
         "radar_title": "Live Flight Tracking",
+        "radar_desc": "Due to security restrictions from fsHub, the map cannot be displayed directly here. Click below to open the full-screen radar.",
+        "radar_btn": "🌍 OPEN LIVE RADAR (New Tab)",
         "pirep_title": "Submit Manual PIREP",
         "pirep_intro": "Backup Form",
         "pirep_warn": "This form is intended for pilots experiencing technical issues with the tracking client (LRM). Please use the automated client whenever possible for data accuracy.",
@@ -103,10 +109,11 @@ TRANS = {
         "form_date_dep": "📅 Departure Date",
         "form_date_arr": "📅 Arrival Date",
         "metar_title": "Aviation Weather",
-        "metar_desc": "Get the latest METAR observations in real-time.",
-        "metar_label": "ICAO Code (e.g. NTAA, KLAX)",
-        "metar_btn": "🔍 Search",
-        "metar_res": "Latest report for",
+        "metar_desc": "Real-time bulletin & Quick decode.",
+        "metar_label": "Search Airport (ICAO Code)",
+        "metar_btn": "🔍 Analyze Weather",
+        "metar_raw": "Raw Bulletin (NOAA Source)",
+        "metar_decoded": "Key Data",
         "checklist_title": "A320 Normal Checklist",
         "checklist_complete": "✅ CHECKLIST COMPLETED",
         "checklist_reset": "🔄 Reset Checklist",
@@ -134,6 +141,8 @@ TRANS = {
         "event_title": "Próximos Eventos",
         "roster_title": "Equipo ATN-Virtual",
         "radar_title": "Rastreo de Vuelos en Vivo",
+        "radar_desc": "Debido a restricciones de seguridad de fsHub, el mapa no se puede mostrar aquí. Haga clic abajo para abrir el radar.",
+        "radar_btn": "🌍 ABRIR RADAR EN VIVO (Nueva Pestaña)",
         "pirep_title": "Enviar PIREP Manual",
         "pirep_intro": "Formulario de Respaldo",
         "pirep_warn": "Este formulario está reservado para pilotos con problemas técnicos en el cliente (LRM). Se recomienda usar el cliente automático para mayor precisión.",
@@ -153,10 +162,11 @@ TRANS = {
         "form_date_dep": "📅 Fecha Salida",
         "form_date_arr": "📅 Fecha Llegada",
         "metar_title": "Clima Aeronáutico",
-        "metar_desc": "Consulta los últimos reportes METAR en tiempo real.",
-        "metar_label": "Código OACI (ej: NTAA, LEMD)",
-        "metar_btn": "🔍 Buscar",
-        "metar_res": "Último reporte para",
+        "metar_desc": "Boletín en tiempo real y decodificación rápida.",
+        "metar_label": "Buscar Aeropuerto (Código OACI)",
+        "metar_btn": "🔍 Analizar Clima",
+        "metar_raw": "Boletín Bruto (Fuente NOAA)",
+        "metar_decoded": "Datos Clave",
         "checklist_title": "Checklist Normal A320",
         "checklist_complete": "✅ CHECKLIST COMPLETED",
         "checklist_reset": "🔄 Reiniciar Checklist",
@@ -168,8 +178,7 @@ TRANS = {
 
 def T(key): return TRANS[st.session_state['lang']][key]
 
-# --- 4. DONNEES CHECKLIST (AIR FRANCE A320) ---
-# Basé sur vos documents
+# --- DONNEES CHECKLIST (AIR FRANCE A320) ---
 A320_CHECKLIST_DATA = {
     "BEFORE START": [
         "Cockpit Prep ... COMPLETED (BOTH)",
@@ -342,8 +351,21 @@ def get_real_metar(icao_code):
         if response.status_code == 200:
             lines = response.text.strip().split('\n')
             return lines[1] if len(lines) >= 2 else response.text
-        return "⚠️ Météo indisponible"
-    except: return "⚠️ Erreur connexion"
+        return "⚠️ Météo indisponible / METAR unavailable"
+    except: return "⚠️ Erreur connexion / Connection error"
+
+def extract_metar_data(raw_text):
+    # Petit parseur manuel pour l'affichage (très basique)
+    data = {"Wind": "N/A", "Temp": "N/A", "QNH": "N/A"}
+    try:
+        parts = raw_text.split()
+        for part in parts:
+            if part.endswith("KT"): data["Wind"] = part
+            elif "/" in part and len(part) < 7: data["Temp"] = part
+            elif part.startswith("Q") and len(part) == 5: data["QNH"] = part
+            elif part.startswith("A") and len(part) == 5 and part[1:].isdigit(): data["QNH"] = part
+    except: pass
+    return data
 
 @st.cache_data(ttl=300)
 def get_fshub_flights():
@@ -481,7 +503,19 @@ else:
     # ACCUEIL
     if selection == T("menu_home"):
         st.title(f"🌺 {T('title_home')} {st.session_state['username']}")
-        st.markdown(f"<div class='metar-box'>{get_real_metar('NTAA')}</div>", unsafe_allow_html=True)
+        
+        # Petit hack pour afficher la météo NTAA proprement sur l'accueil aussi
+        metar_ntaa = get_real_metar('NTAA')
+        data_ntaa = extract_metar_data(metar_ntaa)
+        
+        # Affichage Météo Compact sur l'accueil
+        with st.expander(f"🌦️ Météo Tahiti (NTAA)", expanded=False):
+            mc1, mc2, mc3 = st.columns(3)
+            mc1.metric("Vent", data_ntaa["Wind"])
+            mc2.metric("Temp", data_ntaa["Temp"])
+            mc3.metric("QNH", data_ntaa["QNH"])
+            st.caption(metar_ntaa)
+
         st.write("")
         c1,c2,c3,c4 = st.columns(4)
         c1.metric(T("stats_pilots"), str(len(ROSTER_DATA)), "Actifs")
@@ -549,28 +583,23 @@ else:
                     with cols[j]:
                         st.markdown(f"""<div class="pilot-card"><img src="{PILOT_AVATAR_URL}" class="pilot-img"><div class="pilot-details"><div class="pilot-name">{pilot['id']} - {pilot['nom']}</div><div class="rank-line"><span class="pilot-rank">{pilot['grade']}</span>{staff_html}</div><div class="pilot-info">⏱️ {pilot['heures']}</div></div></div>""", unsafe_allow_html=True)
 
-    # CHECKLIST A320 (NOUVEAU)
+    # CHECKLIST A320
     elif selection == T("menu_checklist"):
         st.title(T("checklist_title"))
         
-        # Bouton Reset
         if st.button(T("checklist_reset")):
             for key in st.session_state.keys():
                 if key.startswith("chk_"):
                     st.session_state[key] = False
             st.rerun()
         
-        # Affichage des phases
         for phase, items in A320_CHECKLIST_DATA.items():
             with st.expander(f"🔹 {phase}", expanded=False):
                 completed = True
                 for i, item in enumerate(items):
-                    # Clé unique pour chaque checkbox
                     key = f"chk_{phase}_{i}"
                     if not st.checkbox(item, key=key):
                         completed = False
-                
-                # Si tout est coché dans cette section
                 if completed:
                     st.success(T("checklist_complete"))
                     st.balloons()
@@ -578,38 +607,30 @@ else:
     # RADAR LIVE
     elif selection == T("menu_radar"):
         st.title(T("radar_title"))
-        st.info("✈️ Suivez la flotte ATN en temps réel.")
-        components.iframe("https://fshub.io/airline/THT/radar", height=800, scrolling=True)
+        st.info(T("radar_desc"))
+        st.link_button(T("radar_btn"), "https://fshub.io/airline/THT/radar")
 
     # PIREP
     elif selection == T("menu_pirep"):
         st.title(T("pirep_title"))
-        
         with st.expander(T("pirep_intro"), expanded=True):
             st.info(T("pirep_warn"))
-            
             c_fp_1, c_fp_2, c_fp_rate = st.columns([2, 2, 1])
             p_flight_nb = c_fp_1.text_input(T("form_flight_nb"), placeholder="ex: TN08")
             p_aircraft = c_fp_2.selectbox(T("form_aircraft"), ["B789", "A359", "A320", "AT76", "DH8D", "B350", "C172"])
             p_landing = c_fp_rate.number_input(T("form_landing"), value=-200, step=10)
-
             c_fp_3, c_fp_4 = st.columns(2)
             p_dep = c_fp_3.text_input(T("form_dep"), max_chars=4, placeholder="NTAA").upper()
             p_arr = c_fp_4.text_input(T("form_arr"), max_chars=4, placeholder="KLAX").upper()
-            
             st.markdown("---")
-            
             c_fp_5, c_fp_6 = st.columns(2)
             p_date_dep = c_fp_5.date_input(T("form_date_dep"))
             p_time_dep = c_fp_6.text_input(T("form_time_dep"), placeholder="HH:MM")
-            
             c_fp_7, c_fp_8 = st.columns(2)
             p_date_arr = c_fp_7.date_input(T("form_date_arr"))
             p_time_arr = c_fp_8.text_input(T("form_time_arr"), placeholder="HH:MM")
-            
             st.markdown("---")
             p_remark = st.text_area(T("form_msg") + " (Optionnel)")
-            
             if st.button(T("pirep_send"), type="primary"):
                 if p_flight_nb and p_dep and p_arr:
                     subject_email = f"[PIREP] {p_flight_nb} : {p_dep}-{p_arr}"
@@ -630,25 +651,46 @@ else:
                 else:
                     st.error("⚠️ Veuillez remplir au moins le N° de Vol, Départ et Arrivée.")
 
-    # METAR ON DEMAND
+    # METAR ON DEMAND (NOUVEAU LOOK)
     elif selection == T("menu_metar"):
         st.title(T("metar_title"))
         st.write(T("metar_desc"))
         
         with st.container(border=True):
+            # Zone de recherche stylisée
             c_met_1, c_met_2 = st.columns([3, 1])
             with c_met_1:
                 icao_search = st.text_input(T("metar_label"), max_chars=4, placeholder="ex: NTAA").upper()
             with c_met_2:
                 st.write("")
                 st.write("")
-                search_btn = st.button(T("metar_btn"), type="primary")
+                search_btn = st.button(T("metar_btn"), type="primary", use_container_width=True)
             
             if search_btn and icao_search:
                 st.markdown("---")
-                st.write(f"**{T('metar_res')} {icao_search} :**")
-                metar_txt = get_real_metar(icao_search)
-                st.markdown(f"<div class='metar-box'>{metar_txt}</div>", unsafe_allow_html=True)
+                
+                # 1. Récupération
+                raw_metar = get_real_metar(icao_search)
+                
+                if "⚠️" not in raw_metar:
+                    # 2. Parsing "maison"
+                    data = extract_metar_data(raw_metar)
+                    
+                    # 3. Affichage Tableau de Bord (Cartes)
+                    st.subheader(f"📍 {icao_search} - {T('metar_decoded')}")
+                    
+                    m1, m2, m3 = st.columns(3)
+                    m1.metric("💨 Vent / Wind", data["Wind"])
+                    m2.metric("🌡️ Temp.", data["Temp"])
+                    m3.metric("⏱️ QNH", data["QNH"])
+                    
+                    st.write("")
+                    
+                    # 4. Affichage Brut (Style Code/Terminal)
+                    st.caption(T("metar_raw"))
+                    st.code(raw_metar, language="text")
+                else:
+                    st.error(raw_metar)
 
     # VALIDATION TOURS
     elif selection == T("menu_tours"):
