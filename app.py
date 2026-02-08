@@ -20,10 +20,11 @@ TRANS = {
         "menu_roster": "👨‍✈️ Roster Pilotes",
         "menu_radar": "🌍 Radar Live",
         "menu_pirep": "📝 PIREP Manuel",
-        "menu_checklist": "📋 Checklist A320 (BETA)",
         "menu_metar": "🌦️ Météo / METAR",
         "menu_tours": "🏆 Validation Tours",
+        "menu_checklist": "📋 Checklist (BETA)",
         "menu_contact": "📞 Contact",
+        
         "title_home": "Ia Ora Na",
         "stats_pilots": "Pilotes Actifs",
         "stats_hours": "Heures Totales",
@@ -31,20 +32,26 @@ TRANS = {
         "stats_landing": "Landing Moyen",
         "recent_flights": "✈️ Vols Récents",
         "demo_mode": "ℹ️ Mode Démo (Données simulées)",
+        
         "event_title": "Prochains événements",
+        
         "roster_title": "L'Équipe ATN-Virtual",
+        "roster_inactive": "⛔ INACTIF",
+        
         "radar_title": "Suivi des Vols en Direct",
         "radar_desc": "Pour des raisons de sécurité imposées par fsHub, la carte ne peut pas s'afficher directement ici. Cliquez ci-dessous pour ouvrir le radar plein écran.",
         "radar_btn": "🌍 OUVRIR LE RADAR LIVE (Nouvel Onglet)",
+        
         "pirep_title": "Soumettre un rapport manuel (PIREP)",
         "pirep_intro": "Formulaire de secours",
         "pirep_warn": "Ce formulaire est réservé aux pilotes rencontrant des difficultés techniques avec le logiciel de suivi (LRM). L'utilisation du client automatique est recommandée pour la précision des données.",
         "pirep_send": "📤 SOUMETTRE LE RAPPORT",
+        
         "contact_title": "Contactez-nous",
-        "contact_desc": "Besoin d'assistance ? Remplissez ce formulaire.",
-        "contact_send": "📤 ENVOYER MA DEMANDE",
-        "form_subject": "Sujet",
-        "form_msg": "Message",
+        "contact_desc": "Une question ? Une suggestion ? Le Staff est à votre écoute.",
+        "contact_send": "📤 PRÉPARER MON EMAIL",
+        "form_subject": "Sujet de votre message",
+        "form_msg": "Votre message détaillé...",
         "form_dep": "🛫 Départ (OACI)",
         "form_arr": "🛬 Arrivée (OACI)",
         "form_aircraft": "✈️ Type Appareil",
@@ -54,15 +61,19 @@ TRANS = {
         "form_time_arr": "🕒 Heure Arrivée (UTC)",
         "form_date_dep": "📅 Date de Départ",
         "form_date_arr": "📅 Date d'Arrivée",
+        
         "metar_title": "Météo Aéronautique",
         "metar_desc": "Bulletin en temps réel & Décodage rapide.",
         "metar_label": "Rechercher un aéroport (Code OACI)",
         "metar_btn": "🔍 Analyser Météo",
         "metar_raw": "Bulletin Brut (Source NOAA)",
         "metar_decoded": "Données Clés",
-        "checklist_title": "Checklist Normale A320",
+        
+        "checklist_title": "Checklist Airbus A320 Family",
+        "checklist_info": "⚠️ MODULE EN DÉVELOPPEMENT : Cette checklist interactive est actuellement en phase de test (BETA). Elle est conçue pour la famille A320 (A319/A320/A321) et sera amenée à évoluer prochainement avec de nouvelles fonctionnalités.",
         "checklist_complete": "✅ CHECKLIST COMPLETED",
         "checklist_reset": "🔄 Réinitialiser la Checklist",
+        
         "logout": "Déconnexion",
         "ext_tools": "Outils Externes",
         "lang_select": "Langue / Language"
@@ -73,10 +84,11 @@ TRANS = {
         "menu_roster": "👨‍✈️ Pilot Roster",
         "menu_radar": "🌍 Live Radar",
         "menu_pirep": "📝 Manual PIREP",
-        "menu_checklist": "📋 Checklist A320 (BETA)",
         "menu_metar": "🌦️ Weather / METAR",
         "menu_tours": "🏆 Tour Validation",
+        "menu_checklist": "📋 Checklist (BETA)",
         "menu_contact": "📞 Contact",
+        
         "title_home": "Ia Ora Na",
         "stats_pilots": "Active Pilots",
         "stats_hours": "Total Hours",
@@ -86,6 +98,7 @@ TRANS = {
         "demo_mode": "ℹ️ Demo Mode (Simulated Data)",
         "event_title": "Upcoming Events",
         "roster_title": "ATN-Virtual Team",
+        "roster_inactive": "⛔ INACTIVE",
         "radar_title": "Live Flight Tracking",
         "radar_desc": "Due to security restrictions from fsHub, the map cannot be displayed directly here. Click below to open the full-screen radar.",
         "radar_btn": "🌍 OPEN LIVE RADAR (New Tab)",
@@ -94,10 +107,10 @@ TRANS = {
         "pirep_warn": "This form is intended for pilots experiencing technical issues with the tracking client (LRM). Please use the automated client whenever possible for data accuracy.",
         "pirep_send": "📤 SUBMIT REPORT",
         "contact_title": "Contact Us",
-        "contact_desc": "Need assistance? Fill out this form.",
-        "contact_send": "📤 SEND REQUEST",
+        "contact_desc": "Any questions? Suggestions? The Staff is here to help.",
+        "contact_send": "📤 PREPARE EMAIL",
         "form_subject": "Subject",
-        "form_msg": "Message",
+        "form_msg": "Your detailed message...",
         "form_dep": "🛫 Departure (ICAO)",
         "form_arr": "🛬 Arrival (ICAO)",
         "form_aircraft": "✈️ Aircraft Type",
@@ -113,7 +126,8 @@ TRANS = {
         "metar_btn": "🔍 Analyze Weather",
         "metar_raw": "Raw Bulletin (NOAA Source)",
         "metar_decoded": "Key Data",
-        "checklist_title": "A320 Normal Checklist",
+        "checklist_title": "Airbus A320 Family Checklist",
+        "checklist_info": "⚠️ UNDER DEVELOPMENT: This interactive checklist is currently in BETA testing phase. It is designed for the A320 Family (A319/A320/A321) and will evolve soon with new features.",
         "checklist_complete": "✅ CHECKLIST COMPLETED",
         "checklist_reset": "🔄 Reset Checklist",
         "logout": "Logout",
@@ -126,10 +140,11 @@ TRANS = {
         "menu_roster": "👨‍✈️ Lista de Pilotos",
         "menu_radar": "🌍 Radar en Vivo",
         "menu_pirep": "📝 PIREP Manual",
-        "menu_checklist": "📋 Checklist A320 (BETA)",
         "menu_metar": "🌦️ Clima / METAR",
         "menu_tours": "🏆 Validación Tours",
+        "menu_checklist": "📋 Checklist (BETA)",
         "menu_contact": "📞 Contacto",
+        
         "title_home": "Ia Ora Na",
         "stats_pilots": "Pilotos Activos",
         "stats_hours": "Horas Totales",
@@ -139,6 +154,7 @@ TRANS = {
         "demo_mode": "ℹ️ Modo Demo (Datos simulados)",
         "event_title": "Próximos Eventos",
         "roster_title": "Equipo ATN-Virtual",
+        "roster_inactive": "⛔ INACTIVO",
         "radar_title": "Rastreo de Vuelos en Vivo",
         "radar_desc": "Debido a restricciones de seguridad de fsHub, el mapa no se puede mostrar aquí. Haga clic abajo para abrir el radar.",
         "radar_btn": "🌍 ABRIR RADAR EN VIVO (Nueva Pestaña)",
@@ -147,10 +163,10 @@ TRANS = {
         "pirep_warn": "Este formulario está reservado para pilotos con problemas técnicos en el cliente (LRM). Se recomienda usar el cliente automático para mayor precisión.",
         "pirep_send": "📤 ENVIAR REPORTE",
         "contact_title": "Contáctanos",
-        "contact_desc": "¿Necesitas ayuda? Rellena este formulario.",
-        "contact_send": "📤 ENVIAR SOLICITUD",
+        "contact_desc": "¿Preguntas? ¿Sugerencias? El Staff está aquí para ayudar.",
+        "contact_send": "📤 PREPARAR EMAIL",
         "form_subject": "Asunto",
-        "form_msg": "Mensaje",
+        "form_msg": "Tu mensaje detallado...",
         "form_dep": "🛫 Salida (OACI)",
         "form_arr": "🛬 Llegada (OACI)",
         "form_aircraft": "✈️ Tipo Avión",
@@ -166,7 +182,8 @@ TRANS = {
         "metar_btn": "🔍 Analizar Clima",
         "metar_raw": "Boletín Bruto (Fuente NOAA)",
         "metar_decoded": "Datos Clave",
-        "checklist_title": "Checklist Normal A320",
+        "checklist_title": "Checklist Familia A320",
+        "checklist_info": "⚠️ EN DESARROLLO: Esta checklist interactiva está en fase BETA. Diseñada para la familia A320 (A319/A320/A321) y evolucionará pronto.",
         "checklist_complete": "✅ CHECKLIST COMPLETED",
         "checklist_reset": "🔄 Reiniciar Checklist",
         "logout": "Cerrar Sesión",
@@ -177,7 +194,7 @@ TRANS = {
 
 def T(key): return TRANS[st.session_state['lang']][key]
 
-# --- DONNEES CHECKLIST (AIR FRANCE A320) ---
+# --- DONNEES CHECKLIST ---
 A320_CHECKLIST_DATA = {
     "BEFORE START": [
         "Cockpit Prep ... COMPLETED (BOTH)",
@@ -281,6 +298,9 @@ st.markdown("""
     .pilot-rank { background-color: #e3f2fd; color: #007bff; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
     .staff-badge { background-color: #d32f2f; color: white; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
     .pilot-info { font-size: 12px; color: #7f8c8d; margin-top: 2px; display: flex; align-items: center; gap: 5px; }
+    
+    /* BADGE INACTIF */
+    .badge-inactive { background-color: #bdc3c7; color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
 
     /* STYLE FLIGHT CARD */
     .flight-card { background-color: white; border-radius: 12px; padding: 16px 24px; margin-bottom: 16px; border-left: 6px solid #009dff; box-shadow: 0 2px 6px rgba(0,0,0,0.06); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease; }
@@ -441,11 +461,12 @@ else:
         
         st.title("ATN-Virtual")
         
-        # --- HORLOGE ZULU ---
+        # --- HORLOGE ZULU & DATE ---
         components.html(
             """
-            <div style="text-align: center; font-family: 'Segoe UI', sans-serif; font-weight: bold; color: white; background-color: #009dff; padding: 10px; border-radius: 8px;">
-                <span id="clock" style="font-size: 18px;">--:--:-- Z</span>
+            <div style="text-align: center; font-family: 'Segoe UI', sans-serif; color: white; background-color: #009dff; padding: 10px; border-radius: 8px;">
+                <div id="date" style="font-size: 14px; margin-bottom: 2px; opacity: 0.9;">--/--/----</div>
+                <div id="clock" style="font-size: 22px; font-weight: bold;">--:--:-- Z</div>
             </div>
             <script>
             function updateTime() {
@@ -453,13 +474,18 @@ else:
                 const time = now.getUTCHours().toString().padStart(2, '0') + ':' +
                              now.getUTCMinutes().toString().padStart(2, '0') + ':' +
                              now.getUTCSeconds().toString().padStart(2, '0') + ' Z';
+                const date = now.getUTCFullYear() + '-' +
+                             (now.getUTCMonth() + 1).toString().padStart(2, '0') + '-' +
+                             now.getUTCDate().toString().padStart(2, '0');
+                             
                 document.getElementById('clock').innerText = time;
+                document.getElementById('date').innerText = date;
             }
             setInterval(updateTime, 1000);
             updateTime();
             </script>
             """,
-            height=60
+            height=75
         )
         
         st.caption(f"CDB : {st.session_state['username']}")
@@ -472,11 +498,11 @@ else:
             T("menu_home"),
             T("menu_events"),
             T("menu_roster"),
-            T("menu_checklist"),
             T("menu_radar"),
             T("menu_pirep"),
             T("menu_metar"),
             T("menu_tours"),
+            T("menu_checklist"),
             T("menu_contact")
         ]
         
@@ -502,18 +528,14 @@ else:
     # ACCUEIL
     if selection == T("menu_home"):
         st.title(f"🌺 {T('title_home')} {st.session_state['username']}")
-        
-        # Petit hack pour afficher la météo NTAA proprement sur l'accueil
         metar_ntaa = get_real_metar('NTAA')
         data_ntaa = extract_metar_data(metar_ntaa)
-        
         with st.expander(f"🌦️ Météo Tahiti (NTAA)", expanded=False):
             mc1, mc2, mc3 = st.columns(3)
             mc1.metric("Vent", data_ntaa["Wind"])
             mc2.metric("Temp", data_ntaa["Temp"])
             mc3.metric("QNH", data_ntaa["QNH"])
             st.caption(metar_ntaa)
-
         st.write("")
         c1,c2,c3,c4 = st.columns(4)
         c1.metric(T("stats_pilots"), str(len(ROSTER_DATA)), "Actifs")
@@ -578,17 +600,23 @@ else:
                     pilot = ROSTER_DATA[i + j]
                     staff_html = ""
                     if pilot['role'] == "STAFF": staff_html = '<span class="staff-badge">STAFF</span>'
+                    
+                    # LOGIQUE INACTIF
+                    heures_display = f"⏱️ {pilot['heures']}"
+                    if pilot['heures'] == "-":
+                        heures_display = f"<span class='badge-inactive'>{T('roster_inactive')}</span>"
+                    
                     with cols[j]:
-                        st.markdown(f"""<div class="pilot-card"><img src="{PILOT_AVATAR_URL}" class="pilot-img"><div class="pilot-details"><div class="pilot-name">{pilot['id']} - {pilot['nom']}</div><div class="rank-line"><span class="pilot-rank">{pilot['grade']}</span>{staff_html}</div><div class="pilot-info">⏱️ {pilot['heures']}</div></div></div>""", unsafe_allow_html=True)
+                        st.markdown(f"""<div class="pilot-card"><img src="{PILOT_AVATAR_URL}" class="pilot-img"><div class="pilot-details"><div class="pilot-name">{pilot['id']} - {pilot['nom']}</div><div class="rank-line"><span class="pilot-rank">{pilot['grade']}</span>{staff_html}</div><div class="pilot-info">{heures_display}</div></div></div>""", unsafe_allow_html=True)
 
     # CHECKLIST A320
     elif selection == T("menu_checklist"):
         st.title(T("checklist_title"))
+        st.info(T("checklist_info"))
         
         if st.button(T("checklist_reset")):
             for key in st.session_state.keys():
-                if key.startswith("chk_"):
-                    st.session_state[key] = False
+                if key.startswith("chk_"): st.session_state[key] = False
             st.rerun()
         
         for phase, items in A320_CHECKLIST_DATA.items():
@@ -596,8 +624,7 @@ else:
                 completed = True
                 for i, item in enumerate(items):
                     key = f"chk_{phase}_{i}"
-                    if not st.checkbox(item, key=key):
-                        completed = False
+                    if not st.checkbox(item, key=key): completed = False
                 if completed:
                     st.success(T("checklist_complete"))
                     st.balloons()
@@ -636,10 +663,8 @@ else:
                     PILOTE: {st.session_state['username']}
                     VOL: {p_flight_nb}
                     AVION: {p_aircraft}
-                    
                     DEPART: {p_dep} le {p_date_dep} à {p_time_dep}z
                     ARRIVEE: {p_arr} le {p_date_arr} à {p_time_arr}z
-                    
                     LANDING: {p_landing} fpm
                     REMARQUES: {p_remark}
                     """
@@ -649,47 +674,30 @@ else:
                 else:
                     st.error("⚠️ Veuillez remplir au moins le N° de Vol, Départ et Arrivée.")
 
-    # METAR ON DEMAND (NOUVEAU LOOK COMPLET)
+    # METAR ON DEMAND
     elif selection == T("menu_metar"):
         st.title(T("metar_title"))
         st.write(T("metar_desc"))
-        
         with st.container(border=True):
-            # Zone de recherche stylisée
             c_met_1, c_met_2 = st.columns([3, 1])
-            with c_met_1:
-                icao_search = st.text_input(T("metar_label"), max_chars=4, placeholder="ex: NTAA").upper()
+            with c_met_1: icao_search = st.text_input(T("metar_label"), max_chars=4, placeholder="ex: NTAA").upper()
             with c_met_2:
-                st.write("")
-                st.write("")
+                st.write(""); st.write("")
                 search_btn = st.button(T("metar_btn"), type="primary", use_container_width=True)
-            
             if search_btn and icao_search:
                 st.markdown("---")
-                
-                # 1. Récupération
                 raw_metar = get_real_metar(icao_search)
-                
                 if "⚠️" not in raw_metar:
-                    # 2. Parsing "maison"
                     data = extract_metar_data(raw_metar)
-                    
-                    # 3. Affichage Tableau de Bord (Cartes Bleues)
                     st.subheader(f"📍 {icao_search} - {T('metar_decoded')}")
-                    
-                    # C'est ici que la magie opère : st.metric utilise ton CSS "bleu"
                     m1, m2, m3 = st.columns(3)
                     m1.metric("💨 Vent / Wind", data["Wind"])
                     m2.metric("🌡️ Temp.", data["Temp"])
                     m3.metric("⏱️ QNH", data["QNH"])
-                    
                     st.write("")
-                    
-                    # 4. Affichage Brut (Style Code/Terminal)
                     st.caption(T("metar_raw"))
                     st.code(raw_metar, language="text")
-                else:
-                    st.error(raw_metar)
+                else: st.error(raw_metar)
 
     # VALIDATION TOURS
     elif selection == T("menu_tours"):
@@ -718,26 +726,35 @@ else:
             st.markdown("---")
             st.markdown(f"""<a href="{link}" target="_blank"><button style="width:100%; background-color:#009dff; color:white; padding:15px; border-radius:10px; border:none; font-weight:bold; cursor:pointer;">✅ ENVOYER LA VALIDATION</button></a>""", unsafe_allow_html=True)
     
-    # CONTACT
+    # CONTACT (PAGE DESIGN PRO)
     elif selection == T("menu_contact"):
         st.title(T("contact_title"))
-        st.write(T("contact_desc"))
         
-        with st.container(border=True):
-            st.text_input("De (Expéditeur)", value=st.session_state['username'], disabled=True)
-            sujet_contact = st.text_input(T("form_subject"))
-            message_contact = st.text_area(T("form_msg"))
-            
-            if sujet_contact and message_contact:
-                subject_email = f"[Crew Center] {sujet_contact}"
-                body_email = f"De: {st.session_state['username']}\n\n{message_contact}"
+        c_contact_1, c_contact_2 = st.columns([1, 2])
+        
+        with c_contact_1:
+            st.image(LOGO_URL, width=150)
+            st.write("### ATN-Virtual Staff")
+            st.info(T("contact_desc"))
+            st.caption("Réponse sous 24/48h")
+        
+        with c_contact_2:
+            with st.container(border=True):
+                st.write("#### 📩 Formulaire")
+                st.text_input("De (Expéditeur)", value=st.session_state['username'], disabled=True)
+                sujet_contact = st.text_input(T("form_subject"), placeholder="ex: Problème PIREP...")
+                message_contact = st.text_area(T("form_msg"), height=150)
+                
+                # Bouton TOUJOURS visible (même si champs vides)
+                # Il prépare le mailto quoi qu'il arrive
+                subject_email = f"[Crew Center] {sujet_contact}" if sujet_contact else "[Crew Center] Nouvelle demande"
+                body_email = f"De: {st.session_state['username']}\n\n{message_contact}" if message_contact else f"De: {st.session_state['username']}\n\n..."
                 link_contact = f"mailto:contact@atnvirtual.fr?subject={urllib.parse.quote(subject_email)}&body={urllib.parse.quote(body_email)}"
                 
                 st.markdown(f"""
-                <a href="{link_contact}" target="_blank">
-                    <button style="width:100%; background-color:#009dff; color:white; padding:15px; border-radius:10px; border:none; font-weight:bold; cursor:pointer;">
-                        {T("contact_send")}
+                <a href="{link_contact}" target="_blank" style="text-decoration:none;">
+                    <button style="width:100%; background-color:#009dff; color:white; padding:15px; border-radius:8px; border:none; font-weight:bold; cursor:pointer; font-size:16px; margin-top:10px;">
+                        {T("contact_send")} ✈️
                     </button>
                 </a>
                 """, unsafe_allow_html=True)
-                
