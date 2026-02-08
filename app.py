@@ -37,6 +37,7 @@ TRANS = {
         
         "roster_title": "L'Équipe ATN-Virtual",
         "roster_inactive": "⛔ INACTIF",
+        "roster_sync": "Synchronisation fsHub...",
         
         "radar_title": "Suivi des Vols en Direct",
         "radar_desc": "Pour des raisons de sécurité imposées par fsHub, la carte ne peut pas s'afficher directement ici. Cliquez ci-dessous pour ouvrir le radar plein écran.",
@@ -99,6 +100,7 @@ TRANS = {
         "event_title": "Upcoming Events",
         "roster_title": "ATN-Virtual Team",
         "roster_inactive": "⛔ INACTIVE",
+        "roster_sync": "Syncing fsHub...",
         "radar_title": "Live Flight Tracking",
         "radar_desc": "Due to security restrictions from fsHub, the map cannot be displayed directly here. Click below to open the full-screen radar.",
         "radar_btn": "🌍 OPEN LIVE RADAR (New Tab)",
@@ -155,6 +157,7 @@ TRANS = {
         "event_title": "Próximos Eventos",
         "roster_title": "Equipo ATN-Virtual",
         "roster_inactive": "⛔ INACTIVO",
+        "roster_sync": "Sincronizando fsHub...",
         "radar_title": "Rastreo de Vuelos en Vivo",
         "radar_desc": "Debido a restricciones de seguridad de fsHub, el mapa no se puede mostrar aquí. Haga clic abajo para abrir el radar.",
         "radar_btn": "🌍 ABRIR RADAR EN VIVO (Nueva Pestaña)",
@@ -163,10 +166,10 @@ TRANS = {
         "pirep_warn": "Este formulario está reservado para pilotos con problemas técnicos en el cliente (LRM). Se recomienda usar el cliente automático para mayor precisión.",
         "pirep_send": "📤 ENVIAR REPORTE",
         "contact_title": "Contáctanos",
-        "contact_desc": "¿Preguntas? ¿Sugerencias? El Staff está aquí para ayudar.",
-        "contact_send": "📤 PREPARAR EMAIL",
+        "contact_desc": "¿Necesitas ayuda? Rellena este formulario.",
+        "contact_send": "📤 ENVIAR SOLICITUD",
         "form_subject": "Asunto",
-        "form_msg": "Tu mensaje detallado...",
+        "form_msg": "Mensaje",
         "form_dep": "🛫 Salida (OACI)",
         "form_arr": "🛬 Llegada (OACI)",
         "form_aircraft": "✈️ Tipo Avión",
@@ -182,7 +185,7 @@ TRANS = {
         "metar_btn": "🔍 Analizar Clima",
         "metar_raw": "Boletín Bruto (Fuente NOAA)",
         "metar_decoded": "Datos Clave",
-        "checklist_title": "Checklist Familia A320",
+        "checklist_title": "Checklist Normal A320",
         "checklist_info": "⚠️ EN DESARROLLO: Esta checklist interactiva está en fase BETA. Diseñada para la familia A320 (A319/A320/A321) y evolucionará pronto.",
         "checklist_complete": "✅ CHECKLIST COMPLETED",
         "checklist_reset": "🔄 Reiniciar Checklist",
@@ -196,77 +199,15 @@ def T(key): return TRANS[st.session_state['lang']][key]
 
 # --- DONNEES CHECKLIST ---
 A320_CHECKLIST_DATA = {
-    "BEFORE START": [
-        "Cockpit Prep ... COMPLETED (BOTH)",
-        "Gear Pins and Covers ... REMOVED",
-        "Signs ... ON / AUTO",
-        "ADIRS ... NAV",
-        "Fuel Quantity ... ____ KG",
-        "TO Data ... SET",
-        "Baro Ref ... SET (BOTH)",
-        "Windows/Doors ... CLOSED (BOTH)",
-        "Beacon ... ON",
-        "Thr Levers ... IDLE",
-        "Parking Brake ... AS RQRD"
-    ],
-    "AFTER START": [
-        "Anti Ice ... AS RQRD",
-        "ECAM Status ... CHECKED",
-        "Pitch Trim ... SET",
-        "Rudder Trim ... ZERO"
-    ],
-    "BEFORE TAKEOFF": [
-        "Flight Controls ... CHECKED (BOTH)",
-        "Flt Inst ... CHECKED (BOTH)",
-        "Briefing ... CONFIRMED",
-        "Flap Setting ... CONF ____ (BOTH)",
-        "V1, VR, V2 / FLX Temp ... SET (BOTH)",
-        "ATC ... SET",
-        "ECAM Memo ... TO NO BLUE"
-    ],
-    "AFTER TAKEOFF / CLIMB": [
-        "Ldg Gear ... UP",
-        "Flaps ... RETRACTED",
-        "Packs ... ON",
-        "Baro Ref ... SET (BOTH)"
-    ],
-    "APPROACH": [
-        "Briefing ... CONFIRMED",
-        "ECAM Status ... CHECKED",
-        "Seat Belts ... ON",
-        "Baro Ref ... SET (BOTH)",
-        "MDA / DH ... SET (BOTH)",
-        "Eng Mode Sel ... AS RQRD"
-    ],
-    "LANDING": [
-        "Cabin Crew ... ADVISED",
-        "A/Thr ... SPEED / OFF",
-        "Auto Brake ... AS RQRD",
-        "ECAM Memo ... LDG NO BLUE"
-    ],
-    "AFTER LANDING": [
-        "Flaps ... RETRACTED",
-        "Spoilers ... DISARMED",
-        "APU ... START",
-        "Radar ... OFF",
-        "Predictive Windshear ... OFF"
-    ],
-    "PARKING": [
-        "APU Bleed ... ON",
-        "Engines ... OFF",
-        "Seat Belts ... OFF",
-        "Ext Lt ... AS RQRD",
-        "Fuel Pumps ... OFF",
-        "Park Brk and Chocks ... AS RQRD"
-    ],
-    "SECURING THE AIRCRAFT": [
-        "ADIRS ... OFF",
-        "Oxygen ... OFF",
-        "APU Bleed ... OFF",
-        "Emer Exit Lt ... OFF",
-        "Signs ... OFF",
-        "APU and Bat ... OFF"
-    ]
+    "BEFORE START": ["Cockpit Prep ... COMPLETED", "Gear Pins ... REMOVED", "Signs ... ON/AUTO", "ADIRS ... NAV", "Fuel ... QTY CHECK", "Baro Ref ... SET", "Windows/Doors ... CLOSED", "Beacon ... ON", "Thr Levers ... IDLE", "Parking Brake ... SET"],
+    "AFTER START": ["Anti Ice ... AS RQRD", "ECAM Status ... CHECKED", "Pitch Trim ... SET", "Rudder Trim ... ZERO"],
+    "BEFORE TAKEOFF": ["Flt Controls ... CHECKED", "Flt Inst ... CHECKED", "Briefing ... CONFIRMED", "Flaps ... SET", "V1/VR/V2 ... SET", "ATC ... SET", "ECAM Memo ... TO NO BLUE"],
+    "AFTER TAKEOFF": ["Ldg Gear ... UP", "Flaps ... RETRACTED", "Packs ... ON", "Baro Ref ... STD"],
+    "APPROACH": ["Briefing ... CONFIRMED", "ECAM Status ... CHECKED", "Seat Belts ... ON", "Baro Ref ... SET", "MDA/DH ... SET", "Eng Mode ... AS RQRD"],
+    "LANDING": ["Cabin Crew ... ADVISED", "A/Thr ... SPEED/OFF", "Auto Brake ... AS RQRD", "ECAM Memo ... LDG NO BLUE"],
+    "AFTER LANDING": ["Flaps ... RETRACTED", "Spoilers ... DISARMED", "APU ... START", "Radar ... OFF"],
+    "PARKING": ["APU Bleed ... ON", "Engines ... OFF", "Seat Belts ... OFF", "Ext Lt ... OFF", "Fuel Pumps ... OFF", "Park Brk ... SET"],
+    "SECURING": ["ADIRS ... OFF", "Oxygen ... OFF", "APU Bleed ... OFF", "Emer Exit Lt ... OFF", "Bat ... OFF"]
 }
 
 # --- GESTION DES IMAGES ---
@@ -300,7 +241,7 @@ st.markdown("""
     .pilot-info { font-size: 12px; color: #7f8c8d; margin-top: 2px; display: flex; align-items: center; gap: 5px; }
     
     /* BADGE INACTIF */
-    .badge-inactive { background-color: #bdc3c7; color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-inactive { background-color: #95a5a6; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
 
     /* STYLE FLIGHT CARD */
     .flight-card { background-color: white; border-radius: 12px; padding: 16px 24px; margin-bottom: 16px; border-left: 6px solid #009dff; box-shadow: 0 2px 6px rgba(0,0,0,0.06); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease; }
@@ -336,29 +277,30 @@ try:
 except FileNotFoundError:
     USERS_DB = { "admin": "admin", "THT1001": "1234" }
 
-# --- 3. DONNÉES ROSTER ---
+# --- 3. DONNÉES ROSTER (AVEC ID FSHUB) ---
+# J'ai ajouté le champ 'fshub_id' pour le scraping
 ROSTER_DATA = [
-    {"id": "THT1001", "nom": "Guillaume B.", "grade": "CDB", "role": "STAFF", "heures": "218h"},
-    {"id": "THT1002", "nom": "Alain L.", "grade": "CDB", "role": "STAFF", "heures": "181h"},
-    {"id": "THT1003", "nom": "Andrew F.", "grade": "CDB", "role": "STAFF", "heures": "558h"},
-    {"id": "THT1004", "nom": "Bertrand G.", "grade": "OPL", "role": "Pilote", "heures": "-"},
-    {"id": "THT1005", "nom": "Jean-Pierre V.", "grade": "CDB", "role": "Pilote", "heures": "2h"},
-    {"id": "THT1006", "nom": "Isaac H.", "grade": "OPL", "role": "Pilote", "heures": "-"},
-    {"id": "THT1007", "nom": "Bonno T.", "grade": "CDB", "role": "Pilote", "heures": "187h"},
-    {"id": "THT1008", "nom": "Raiarii F.", "grade": "OPL", "role": "Pilote", "heures": "-"},
-    {"id": "THT1009", "nom": "Frédéric B.", "grade": "CDB", "role": "Pilote", "heures": "273h"},
-    {"id": "THT1010", "nom": "Adolphe T.", "grade": "OPL", "role": "Pilote", "heures": "-"},
-    {"id": "THT1011", "nom": "Natea R.", "grade": "OPL", "role": "Pilote", "heures": "21h"},
-    {"id": "THT1012", "nom": "Toanui P.", "grade": "OPL", "role": "Pilote", "heures": "-"},
-    {"id": "THT1013", "nom": "KEANU F.", "grade": "OPL", "role": "Pilote", "heures": "82h"},
-    {"id": "THT1014", "nom": "LISANDRU S.", "grade": "OPL", "role": "Pilote", "heures": "-"},
-    {"id": "THT1015", "nom": "Ryron P.", "grade": "OPL", "role": "Pilote", "heures": "-"},
-    {"id": "THT1016", "nom": "Pascal C.", "grade": "OPL", "role": "Pilote", "heures": "-"},
-    {"id": "THT1017", "nom": "Angelo D.", "grade": "OPL", "role": "Pilote", "heures": "-"},
-    {"id": "THT1018", "nom": "Jordan M.", "grade": "OPL", "role": "Pilote", "heures": "94h"},
-    {"id": "THT1019", "nom": "MATHIEU G.", "grade": "OPL", "role": "Pilote", "heures": "37h"},
-    {"id": "THT1020", "nom": "Matthias G.", "grade": "CDB", "role": "STAFF", "heures": "16h"},
-    {"id": "THT1021", "nom": "DANIEL V.", "grade": "OPL", "role": "Pilote", "heures": "-"}
+    {"id": "THT1001", "nom": "Guillaume B.", "grade": "CDB", "role": "STAFF", "fshub_id": "23309"},
+    {"id": "THT1002", "nom": "Alain L.", "grade": "CDB", "role": "STAFF", "fshub_id": "23385"},
+    {"id": "THT1003", "nom": "Andrew F.", "grade": "CDB", "role": "STAFF", "fshub_id": "23387"},
+    {"id": "THT1004", "nom": "Bertrand G.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
+    {"id": "THT1005", "nom": "Jean-Pierre V.", "grade": "CDB", "role": "Pilote", "fshub_id": "22712"},
+    {"id": "THT1006", "nom": "Isaac H.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
+    {"id": "THT1007", "nom": "Bonno T.", "grade": "CDB", "role": "Pilote", "fshub_id": "23713"},
+    {"id": "THT1008", "nom": "Raiarii F.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
+    {"id": "THT1009", "nom": "Frédéric B.", "grade": "CDB", "role": "Pilote", "fshub_id": "12054"},
+    {"id": "THT1010", "nom": "Adolphe T.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
+    {"id": "THT1011", "nom": "Natea R.", "grade": "OPL", "role": "Pilote", "fshub_id": "24319"},
+    {"id": "THT1012", "nom": "Toanui P.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
+    {"id": "THT1013", "nom": "KEANU F.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
+    {"id": "THT1014", "nom": "LISANDRU S.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
+    {"id": "THT1015", "nom": "Ryron P.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
+    {"id": "THT1016", "nom": "Pascal C.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
+    {"id": "THT1017", "nom": "Angelo D.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
+    {"id": "THT1018", "nom": "Jordan M.", "grade": "OPL", "role": "Pilote", "fshub_id": "19702"},
+    {"id": "THT1019", "nom": "MATHIEU G.", "grade": "OPL", "role": "Pilote", "fshub_id": "1360"},
+    {"id": "THT1020", "nom": "Matthias G.", "grade": "CDB", "role": "STAFF", "fshub_id": "28103"},
+    {"id": "THT1021", "nom": "DANIEL V.", "grade": "OPL", "role": "Pilote", "fshub_id": ""}
 ]
 LISTE_TOURS = ["Tiare IFR Tour", "World ATN Tour IFR", "Tamure Tour VFR", "Taura'a VFR Tour"]
 
@@ -374,7 +316,6 @@ def get_real_metar(icao_code):
     except: return "⚠️ Erreur connexion / Connection error"
 
 def extract_metar_data(raw_text):
-    # Petit parseur manuel pour l'affichage (très basique)
     data = {"Wind": "N/A", "Temp": "N/A", "QNH": "N/A"}
     try:
         parts = raw_text.split()
@@ -385,6 +326,38 @@ def extract_metar_data(raw_text):
             elif part.startswith("A") and len(part) == 5 and part[1:].isdigit(): data["QNH"] = part
     except: pass
     return data
+
+@st.cache_data(ttl=3600)
+def get_pilot_live_hours(fshub_id):
+    """
+    Scrape le profil public du pilote sur fsHub pour trouver les heures ATN-Virtual (THT)
+    """
+    if not fshub_id: return None
+    url = f"https://fshub.io/pilot/{fshub_id}"
+    try:
+        # User-Agent pour éviter d'être bloqué
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+        dfs = pd.read_html(url, storage_options=headers)
+        
+        # On cherche une table qui contient "Airline"
+        for df in dfs:
+            # Nettoyage des colonnes pour éviter les espaces
+            df.columns = df.columns.str.strip()
+            
+            # Vérification si la colonne Airline existe (parfois nommée différemment)
+            if 'Airline' in df.columns:
+                # On cherche la ligne correspondant à THT ou ATN
+                # On regarde si 'THT' ou 'ATN' est dans la colonne Airline
+                # On filtre
+                row = df[df['Airline'].astype(str).str.contains("THT|ATN", case=False, na=False)]
+                if not row.empty:
+                    # On cherche la colonne des heures (souvent "Hours", "Flight time" ou similaire)
+                    for col in df.columns:
+                        if "Hour" in col or "Time" in col:
+                            return row.iloc[0][col]
+    except:
+        return None
+    return None
 
 @st.cache_data(ttl=300)
 def get_fshub_flights():
@@ -402,23 +375,6 @@ def get_fshub_flights():
             if len(df.columns) >= 5: return df, True
         return demo_data, False 
     except: return demo_data, False
-
-@st.cache_data(ttl=3600) 
-def get_fshub_pilots():
-    url = "https://fshub.io/airline/THT/pilots"
-    headers = {'User-Agent': 'Mozilla/5.0'}
-    try:
-        import lxml
-        dfs = pd.read_html(url, storage_options=headers)
-        if len(dfs) > 0:
-            df = dfs[0]
-            if len(df.columns) >= 7:
-                df.columns.values[0] = 'Pilote'; df.columns.values[1] = 'Grade'
-                df.columns.values[4] = 'Statut'; df.columns.values[5] = 'Dernière Activité'
-                df.columns.values[6] = 'Membre Depuis'
-                return df, True
-        return None, False
-    except: return None, False
 
 # --- 5. SESSION ---
 if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
@@ -588,10 +544,12 @@ else:
             st.write("### 👥 Participants")
             st.dataframe(pd.DataFrame(list(st.session_state['event_participants'].items()), columns=['Pilote', 'Statut']), use_container_width=True)
 
-    # ROSTER
+    # ROSTER (LIVE HOURS)
     elif selection == T("menu_roster"):
         st.title(T("roster_title"))
+        st.caption(T("roster_sync")) # Petit message pour dire qu'on charge les données
         st.markdown("---")
+        
         cols_per_row = 3
         for i in range(0, len(ROSTER_DATA), cols_per_row):
             cols = st.columns(cols_per_row)
@@ -601,9 +559,13 @@ else:
                     staff_html = ""
                     if pilot['role'] == "STAFF": staff_html = '<span class="staff-badge">STAFF</span>'
                     
-                    # LOGIQUE INACTIF
-                    heures_display = f"⏱️ {pilot['heures']}"
-                    if pilot['heures'] == "-":
+                    # LOGIQUE LIVE HOURS
+                    # On va chercher les heures réelles
+                    live_hours = get_pilot_live_hours(pilot['fshub_id'])
+                    
+                    if live_hours:
+                        heures_display = f"⏱️ {live_hours}"
+                    else:
                         heures_display = f"<span class='badge-inactive'>{T('roster_inactive')}</span>"
                     
                     with cols[j]:
@@ -612,7 +574,7 @@ else:
     # CHECKLIST A320
     elif selection == T("menu_checklist"):
         st.title(T("checklist_title"))
-        st.info(T("checklist_info"))
+        st.warning(T("checklist_info"))
         
         if st.button(T("checklist_reset")):
             for key in st.session_state.keys():
@@ -726,7 +688,7 @@ else:
             st.markdown("---")
             st.markdown(f"""<a href="{link}" target="_blank"><button style="width:100%; background-color:#009dff; color:white; padding:15px; border-radius:10px; border:none; font-weight:bold; cursor:pointer;">✅ ENVOYER LA VALIDATION</button></a>""", unsafe_allow_html=True)
     
-    # CONTACT (PAGE DESIGN PRO)
+    # CONTACT (DESIGN PRO & BOUTON FIXE)
     elif selection == T("menu_contact"):
         st.title(T("contact_title"))
         
