@@ -277,8 +277,7 @@ try:
 except FileNotFoundError:
     USERS_DB = { "admin": "admin", "THT1001": "1234" }
 
-# --- 3. DONNÉES ROSTER (AVEC ID FSHUB) ---
-# J'ai ajouté le champ 'fshub_id' pour le scraping
+# --- 3. DONNÉES ROSTER ---
 ROSTER_DATA = [
     {"id": "THT1001", "nom": "Guillaume B.", "grade": "CDB", "role": "STAFF", "fshub_id": "23309"},
     {"id": "THT1002", "nom": "Alain L.", "grade": "CDB", "role": "STAFF", "fshub_id": "23385"},
@@ -329,34 +328,19 @@ def extract_metar_data(raw_text):
 
 @st.cache_data(ttl=3600)
 def get_pilot_live_hours(fshub_id):
-    """
-    Scrape le profil public du pilote sur fsHub pour trouver les heures ATN-Virtual (THT)
-    """
     if not fshub_id: return None
     url = f"https://fshub.io/pilot/{fshub_id}"
     try:
-        # User-Agent pour éviter d'être bloqué
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+        headers = {'User-Agent': 'Mozilla/5.0'}
         dfs = pd.read_html(url, storage_options=headers)
-        
-        # On cherche une table qui contient "Airline"
         for df in dfs:
-            # Nettoyage des colonnes pour éviter les espaces
             df.columns = df.columns.str.strip()
-            
-            # Vérification si la colonne Airline existe (parfois nommée différemment)
             if 'Airline' in df.columns:
-                # On cherche la ligne correspondant à THT ou ATN
-                # On regarde si 'THT' ou 'ATN' est dans la colonne Airline
-                # On filtre
                 row = df[df['Airline'].astype(str).str.contains("THT|ATN", case=False, na=False)]
                 if not row.empty:
-                    # On cherche la colonne des heures (souvent "Hours", "Flight time" ou similaire)
                     for col in df.columns:
-                        if "Hour" in col or "Time" in col:
-                            return row.iloc[0][col]
-    except:
-        return None
+                        if "Hour" in col or "Time" in col: return row.iloc[0][col]
+    except: return None
     return None
 
 @st.cache_data(ttl=300)
@@ -403,9 +387,23 @@ def login_page():
         st.markdown("---")
         with st.container(border=True):
             st.markdown("<h3 class='center-text'>🌟 Rejoignez l'aventure !</h3>", unsafe_allow_html=True)
+            # --- MODIFICATION TEXTE MARKETING ---
+            st.markdown("""
+            <div style='text-align: center; color: #57606a; margin-bottom: 20px;'>
+            Embarquez pour une expérience immersive au cœur du Pacifique. 
+            Du vol inter-îles en ATR au long-courrier en Dreamliner, 
+            vivez la simulation autrement dans une ambiance conviviale et professionnelle.
+            </div>
+            """, unsafe_allow_html=True)
+            # ------------------------------------
             c_invit1, c_invit2 = st.columns(2)
             with c_invit1: st.link_button("📝 Inscription fsHub", "https://fshub.io/airline/THT/overview", use_container_width=True)
             with c_invit2: st.link_button("🌐 Notre Site Web", "https://www.atnvirtual.fr/", use_container_width=True)
+            
+            st.markdown("---")
+            # --- MODIFICATION INFO ACCES ---
+            st.info("ℹ️ **Information d'accès :** Vos identifiants personnels pour ce Crew Center vous seront communiqués par le Staff une fois votre inscription validée sur fsHub.")
+            # -------------------------------
 
 if not st.session_state['logged_in']:
     login_page()
@@ -547,7 +545,7 @@ else:
     # ROSTER (LIVE HOURS)
     elif selection == T("menu_roster"):
         st.title(T("roster_title"))
-        st.caption(T("roster_sync")) # Petit message pour dire qu'on charge les données
+        st.caption(T("roster_sync"))
         st.markdown("---")
         
         cols_per_row = 3
@@ -559,8 +557,6 @@ else:
                     staff_html = ""
                     if pilot['role'] == "STAFF": staff_html = '<span class="staff-badge">STAFF</span>'
                     
-                    # LOGIQUE LIVE HOURS
-                    # On va chercher les heures réelles
                     live_hours = get_pilot_live_hours(pilot['fshub_id'])
                     
                     if live_hours:
@@ -688,14 +684,15 @@ else:
             st.markdown("---")
             st.markdown(f"""<a href="{link}" target="_blank"><button style="width:100%; background-color:#009dff; color:white; padding:15px; border-radius:10px; border:none; font-weight:bold; cursor:pointer;">✅ ENVOYER LA VALIDATION</button></a>""", unsafe_allow_html=True)
     
-    # CONTACT (DESIGN PRO & BOUTON FIXE)
+    # CONTACT
     elif selection == T("menu_contact"):
         st.title(T("contact_title"))
         
         c_contact_1, c_contact_2 = st.columns([1, 2])
         
         with c_contact_1:
-            st.image(LOGO_URL, width=150)
+            try: st.image(LOGO_URL, width=150)
+            except: pass
             st.write("### ATN-Virtual Staff")
             st.info(T("contact_desc"))
             st.caption("Réponse sous 24/48h")
@@ -707,8 +704,6 @@ else:
                 sujet_contact = st.text_input(T("form_subject"), placeholder="ex: Problème PIREP...")
                 message_contact = st.text_area(T("form_msg"), height=150)
                 
-                # Bouton TOUJOURS visible (même si champs vides)
-                # Il prépare le mailto quoi qu'il arrive
                 subject_email = f"[Crew Center] {sujet_contact}" if sujet_contact else "[Crew Center] Nouvelle demande"
                 body_email = f"De: {st.session_state['username']}\n\n{message_contact}" if message_contact else f"De: {st.session_state['username']}\n\n..."
                 link_contact = f"mailto:contact@atnvirtual.fr?subject={urllib.parse.quote(subject_email)}&body={urllib.parse.quote(body_email)}"
