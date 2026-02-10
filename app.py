@@ -1,12 +1,12 @@
 import streamlit as st
 import pandas as pd
 import requests
-import re # Module pour la recherche précise de texte
 import urllib.parse
 from datetime import datetime
 import os
 import base64
 import smtplib
+import json # Le module pour la mémoire
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import streamlit.components.v1 as components
@@ -16,6 +16,19 @@ st.set_page_config(page_title="ATN-Virtual | Crew Center", page_icon="🌺", lay
 
 # --- GESTION LANGUE (Session) ---
 if 'lang' not in st.session_state: st.session_state['lang'] = 'FR'
+
+# --- GESTION MEMOIRE (JSON) ---
+DB_FILE = "events_db.json"
+
+def load_event_data():
+    if os.path.exists(DB_FILE):
+        with open(DB_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def save_event_data(data):
+    with open(DB_FILE, "w") as f:
+        json.dump(data, f)
 
 # --- DICTIONNAIRE DE TRADUCTION ---
 TRANS = {
@@ -385,46 +398,68 @@ def get_all_pilots_hours_global():
     except: return {}
     return pilot_hours
 
-# --- ROBOT CHIRURGIEN : STATS GLOBALES OVERVIEW ---
+# --- NOUVEAU SYSTEME DE CALCUL (V55) ---
 @st.cache_data(ttl=300)
-def get_va_stats_surgical():
-    url = "https://fshub.io/airline/THT/overview"
-    # Valeurs de secours issues de ta capture (pour ne plus avoir N/A)
-    stats = {"flights": "835", "hours": "1,828.29"} 
+def calculate_va_stats_from_pilots():
+    url = "https://fshub.io/airline/THT/pilots"
+    stats = {"flights": 0, "hours": 0}
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
-        response = requests.get(url, headers=headers, timeout=5)
-        if response.status_code == 200:
-            html = response.text
-            # Recherche texte Brut : "Total Flights"
-            # Souvent le chiffre est juste avant ou dans un div proche
-            # Regex : Cherche un nombre (avec virgules/points) suivi de "Total Flights"
-            # Pattern pour le HTML minifié ou structuré
-            
-            # Flights
-            # On cherche grossièrement autour de "Total Flights"
-            match_flt = re.search(r'([\d,]+)\s*<[^>]+>\s*Total Flights', html)
-            if match_flt:
-                stats["flights"] = match_flt.group(1)
-            else:
-                # Essai méthode 2 : le chiffre est peut être dans un div avant
-                # Recherche : >835< ... Total Flights
-                match_flt_2 = re.search(r'>\s*([\d,]+)\s*<.+?Total Flights', html, re.DOTALL)
-                if match_flt_2:
-                    stats["flights"] = match_flt_2.group(1)
-
-            # Hours
-            match_hrs = re.search(r'([\d,.]+)\s*<[^>]+>\s*Total Hours', html)
-            if match_hrs:
-                stats["hours"] = match_hrs.group(1)
-            else:
-                match_hrs_2 = re.search(r'>\s*([\d,.]+)\s*<.+?Total Hours', html, re.DOTALL)
-                if match_hrs_2:
-                    stats["hours"] = match_hrs_2.group(1)
-                    
-    except Exception as e:
-        print(f"Erreur scraping stats: {e}")
+        dfs = pd.read_html(url, storage_options=headers)
+        for df in dfs:
+            cols_str = [str(c).lower() for c in df.columns]
+            if any("flight" in c for c in cols_str) and any("hour" in c for c in cols_str):
+                col_flt_idx = next(i for i, c in enumerate(cols_str) if "flight" in c)
+                col_hrs_idx = next(i for i, c in enumerate(cols_str) if "hour" in c)
+                
+                total_flights = 0
+                for val in df.iloc[:, col_flt_idx]:
+                    try: total_flights += int(str(val).replace(',', ''))
+                    except: pass
+                
+                total_hours = 0.0
+                for val in df.iloc[:, col_hrs_idx]:
+                    try:
+                        clean = str(val).lower().replace(',', '')
+                        h = 0
+                        if 'h' in clean:
+                            parts = clean.split('h')
+                            h = float(parts[0])
+                        else:
+                            h = float(clean)
+                        total_hours += h
+                    except: pass
+                
+                stats["flights"] = total_flights
+                stats["hours"] = int(total_hours)
+                return stats
+    except: pass
     return stats
+
+# --- ROBOT PUISSANT : SCRAPER LES PILOTES AVEC HEURES ET VOLS (POUR LEADERBOARD) ---
+@st.cache_data(ttl=3600)
+def get_global_pilot_data():
+    url = "https://fshub.io/airline/THT/pilots"
+    pilot_data = {}
+    try:
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        dfs = pd.read_html(url, storage_options=headers)
+        if len(dfs) > 0:
+            df = dfs[0]
+            cols_str = [str(c).lower() for c in df.columns]
+            try:
+                col_pilot_idx = next(i for i, c in enumerate(cols_str) if "pilot" in c)
+                col_hrs_idx = next(i for i, c in enumerate(cols_str) if "hour" in c)
+                col_flt_idx = next(i for i, c in enumerate(cols_str) if "flight" in c)
+                
+                for index, row in df.iterrows():
+                    p_name = str(row.iloc[col_pilot_idx])
+                    p_hours = str(row.iloc[col_hrs_idx])
+                    p_flights = str(row.iloc[col_flt_idx])
+                    pilot_data[p_name] = {'hours': p_hours, 'flights': p_flights}
+            except: pass
+    except: return {}
+    return pilot_data
 
 @st.cache_data(ttl=300)
 def get_fshub_flights():
@@ -476,7 +511,9 @@ def send_email_via_ionos(subject, body):
 
 # --- 5. SESSION ---
 if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
-if 'event_participants' not in st.session_state: st.session_state['event_participants'] = {}
+if 'event_participants' not in st.session_state: 
+    # Charger depuis JSON si possible
+    st.session_state['event_participants'] = load_event_data()
 
 # --- 6. LOGIN ---
 def login_page():
@@ -565,9 +602,12 @@ else:
             st.caption(metar_ntaa)
         st.write("")
         
-        # --- STATS GLOBALES (VIA SCRAPING CHIRURGICAL) ---
-        va_stats = get_va_stats_surgical()
+        # --- RECUPERATION DONNEES REELLES ---
+        # Utilisation de la méthode SOMME (Calculatrice) car la plus fiable
+        global_pilot_data = get_global_pilot_data() # Pour Roster et Leaderboard
+        va_stats = calculate_va_stats_from_pilots() # Pour Stats Globales (Vols/Heures)
         
+        # --- STATS GLOBALES (ORDRE 1) ---
         c1,c2,c3,c4 = st.columns(4)
         c1.metric(T("stats_pilots"), str(len(ROSTER_DATA)), "Actifs")
         c2.metric(T("stats_hours"), f"{va_stats['hours']} h", "Total")
@@ -578,13 +618,14 @@ else:
         
         # --- LEADERBOARD (ORDRE 2) ---
         st.subheader(T("leaderboard_title"))
-        global_hours_map = get_all_pilots_hours_global()
+        
         ranking_data = []
         for pilot in ROSTER_DATA:
             h_str = pilot['default']
-            for name, h in global_hours_map.items():
+            # Recherche dans les données scrapées (Heures)
+            for name, p_data in global_pilot_data.items():
                 if pilot['id'] in name:
-                    h_str = h
+                    h_str = p_data['hours']
                     break
             try:
                 clean_h = float(h_str.lower().replace('h','').replace(',','').replace(' ',''))
@@ -635,11 +676,11 @@ else:
         if current_pilot:
             st.write(f"### 👋 {current_pilot['nom']}")
             st.markdown(f"#### {T('profile_career')}")
-            global_hours = get_all_pilots_hours_global()
+            global_pilot_data = get_global_pilot_data()
             my_hours = current_pilot['default']
-            for name, h in global_hours.items():
+            for name, p_data in global_pilot_data.items():
                 if current_pilot['id'] in name:
-                    my_hours = h
+                    my_hours = p_data['hours']
                     break
             c_prof1, c_prof2 = st.columns(2)
             c_prof1.metric(T("profile_grade"), current_pilot['grade'])
@@ -692,18 +733,26 @@ else:
                 else:
                     st.error("Veuillez entrer au moins un aéroport de départ et d'arrivée.")
 
-    # EVENEMENTS
+    # EVENEMENTS (CORRIGÉ AVEC PERSISTANCE JSON)
     elif selection == T("menu_events"):
         st.title(T("event_title"))
         st.markdown("""<div class="event-card"><div class="ev-date-box"><div class="ev-day">22</div><div class="ev-month">FÉV</div></div><div class="ev-details"><div class="ev-title">🎉 1 An de la VA</div><div class="ev-meta"><span>🕒 19:00 Z</span><span>📍 Hub NTAA</span><span class="ev-tag">Event Hub</span></div></div></div>""", unsafe_allow_html=True)
         c1, c2, c3, c4 = st.columns([1, 1, 1, 3])
         uid = st.session_state['username']
-        with c1:
-            if st.button("✅ Présent", key="evt1_yes"): st.session_state['event_participants'][uid] = "Présent"
-        with c2:
-            if st.button("🤔 Peut-être", key="evt1_maybe"): st.session_state['event_participants'][uid] = "Incertain"
-        with c3:
-            if st.button("❌ Absent", key="evt1_no"): st.session_state['event_participants'][uid] = "Absent"
+        
+        # Logique de vote avec sauvegarde
+        vote = None
+        if c1.button("✅ Présent", key="evt1_yes"): vote = "Présent"
+        if c2.button("🤔 Peut-être", key="evt1_maybe"): vote = "Incertain"
+        if c3.button("❌ Absent", key="evt1_no"): vote = "Absent"
+        
+        if vote:
+            # Mise à jour mémoire vive
+            st.session_state['event_participants'][uid] = vote
+            # Sauvegarde disque dur
+            save_event_data(st.session_state['event_participants'])
+            st.rerun()
+
         st.markdown("---")
         if st.session_state['event_participants']: 
             st.write("### 👥 Participants")
@@ -714,7 +763,7 @@ else:
         st.title(T("roster_title"))
         st.caption(T("roster_sync"))
         st.markdown("---")
-        global_hours_map = get_all_pilots_hours_global()
+        global_pilot_data = get_global_pilot_data()
         cols_per_row = 3
         for i in range(0, len(ROSTER_DATA), cols_per_row):
             cols = st.columns(cols_per_row)
@@ -723,10 +772,13 @@ else:
                     pilot = ROSTER_DATA[i + j]
                     staff_html = '<span class="staff-badge">STAFF</span>' if pilot['role'] == "STAFF" else ""
                     final_hours = pilot['default']
-                    for name_key, hours_val in global_hours_map.items():
-                        if pilot['id'] in name_key:
-                            final_hours = hours_val
+                    
+                    # Recherche dans les données scrapées (Heures)
+                    for name, p_data in global_pilot_data.items():
+                        if pilot['id'] in name:
+                            final_hours = p_data['hours']
                             break
+                            
                     heures_display = f"⏱️ {final_hours}" if final_hours and final_hours != "-" else f"<span class='badge-inactive'>{T('roster_inactive')}</span>"
                     with cols[j]:
                         st.markdown(f"""<div class="pilot-card"><img src="{PILOT_AVATAR_URL}" class="pilot-img"><div class="pilot-details"><div class="pilot-name">{pilot['id']} - {pilot['nom']}</div><div class="rank-line"><span class="pilot-rank">{pilot['grade']}</span>{staff_html}</div><div class="pilot-info">{heures_display}</div></div></div>""", unsafe_allow_html=True)
