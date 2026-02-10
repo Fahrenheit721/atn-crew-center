@@ -1,20 +1,3 @@
-C'est une excellente nouvelle ! 🎉 Faire le ménage est essentiel pour la crédibilité d'une VA, surtout pour une certification IVAO. Avoir un roster "propre" avec uniquement des pilotes actifs montre que la compagnie est vivante et sérieuse.
-
-Comme je ne peux pas lire directement le site web, je me suis basé sur la liste précise des liens fsHub que tu m'as donnés juste avant (qui semblait correspondre aux pilotes actifs).
-
-Voici la Version 42.0 (Roster Clean & Certifié).
-
-🧹 Ce qui a été fait :
-Grand Nettoyage : J'ai supprimé tous les pilotes "fantômes" (THT1004, 1006, 1008, 1010, 1012, 1014, 1015, 1016, 1017, 1021...).
-
-Liste Officielle : Il ne reste que les 10 pilotes actifs confirmés.
-
-Données fsHub : Tous les pilotes restants ont leur ID fsHub configuré pour le suivi des heures en direct.
-
-Le Code Complet (Version 42.0)
-Remplace tout le contenu de app.py.
-
-Python
 import streamlit as st
 import pandas as pd
 import requests
