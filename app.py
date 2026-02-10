@@ -5,6 +5,9 @@ import urllib.parse
 from datetime import datetime
 import os
 import base64
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import streamlit.components.v1 as components
 
 # --- 1. CONFIGURATION & STYLE ---
@@ -40,10 +43,10 @@ TRANS = {
         "pirep_title": "Soumettre un rapport manuel (PIREP)",
         "pirep_intro": "Formulaire de secours",
         "pirep_warn": "Ce formulaire est réservé aux pilotes rencontrant des difficultés techniques avec le logiciel de suivi (LRM). L'utilisation du client automatique est recommandée pour la précision des données.",
-        "pirep_send": "📤 SOUMETTRE LE RAPPORT",
+        "pirep_send": "📤 ENVOYER LE RAPPORT (Direct)",
         "contact_title": "Contactez-nous",
         "contact_desc": "Une question ? Une suggestion ? Le Staff est à votre écoute.",
-        "contact_send": "📤 PRÉPARER MON EMAIL",
+        "contact_send": "📤 ENVOYER LE MESSAGE (Direct)",
         "form_subject": "Sujet de votre message",
         "form_msg": "Votre message détaillé...",
         "form_dep": "🛫 Départ (OACI)",
@@ -72,7 +75,9 @@ TRANS = {
         "profile_hours": "Mes Heures",
         "logout": "Déconnexion",
         "ext_tools": "Outils Externes",
-        "lang_select": "Langue / Language"
+        "lang_select": "Langue / Language",
+        "email_success": "✅ Message envoyé avec succès au Staff !",
+        "email_error": "❌ Erreur lors de l'envoi : "
     },
     "EN": {
         "menu_home": "🏠 Home",
@@ -96,16 +101,13 @@ TRANS = {
         "roster_title": "ATN-Virtual Team",
         "roster_inactive": "⛔ INACTIVE",
         "roster_sync": "Data synced with fsHub",
-        "radar_title": "Live Flight Tracking",
-        "radar_desc": "Due to security restrictions from fsHub, the map cannot be displayed directly here. Click below to open the full-screen radar.",
-        "radar_btn": "🌍 OPEN LIVE RADAR (New Tab)",
         "pirep_title": "Submit Manual PIREP",
         "pirep_intro": "Backup Form",
         "pirep_warn": "This form is intended for pilots experiencing technical issues with the tracking client (LRM). Please use the automated client whenever possible for data accuracy.",
-        "pirep_send": "📤 SUBMIT REPORT",
+        "pirep_send": "📤 SUBMIT REPORT (Direct)",
         "contact_title": "Contact Us",
         "contact_desc": "Any questions? Suggestions? The Staff is here to help.",
-        "contact_send": "📤 PREPARE EMAIL",
+        "contact_send": "📤 SEND MESSAGE (Direct)",
         "form_subject": "Subject",
         "form_msg": "Your detailed message...",
         "form_dep": "🛫 Departure (ICAO)",
@@ -134,7 +136,9 @@ TRANS = {
         "profile_hours": "My Hours",
         "logout": "Logout",
         "ext_tools": "External Tools",
-        "lang_select": "Langue / Language"
+        "lang_select": "Langue / Language",
+        "email_success": "✅ Message sent successfully!",
+        "email_error": "❌ Error sending email: "
     },
     "ES": {
         "menu_home": "🏠 Inicio",
@@ -158,16 +162,13 @@ TRANS = {
         "roster_title": "Equipo ATN-Virtual",
         "roster_inactive": "⛔ INACTIVO",
         "roster_sync": "Datos sincronizados con fsHub",
-        "radar_title": "Rastreo de Vuelos en Vivo",
-        "radar_desc": "Debido a restricciones de seguridad de fsHub, el mapa no se puede mostrar aquí. Haga clic abajo para abrir el radar.",
-        "radar_btn": "🌍 ABRIR RADAR EN VIVO (Nueva Pestaña)",
         "pirep_title": "Enviar PIREP Manual",
         "pirep_intro": "Formulario de Respaldo",
         "pirep_warn": "Este formulario está reservado para pilotos con problemas técnicos en el cliente (LRM). Se recomienda usar el cliente automático para mayor precisión.",
-        "pirep_send": "📤 ENVIAR REPORTE",
+        "pirep_send": "📤 ENVIAR REPORTE (Directo)",
         "contact_title": "Contáctanos",
         "contact_desc": "¿Necesitas ayuda? Rellena este formulario.",
-        "contact_send": "📤 ENVIAR SOLICITUD",
+        "contact_send": "📤 ENVIAR SOLICITUD (Directo)",
         "form_subject": "Asunto",
         "form_msg": "Mensaje",
         "form_dep": "🛫 Salida (OACI)",
@@ -196,7 +197,9 @@ TRANS = {
         "profile_hours": "Mis Horas",
         "logout": "Cerrar Sesión",
         "ext_tools": "Herramientas Externas",
-        "lang_select": "Langue / Language"
+        "lang_select": "Langue / Language",
+        "email_success": "✅ Mensaje enviado con éxito!",
+        "email_error": "❌ Error al enviar: "
     }
 }
 
@@ -251,7 +254,6 @@ st.markdown("""
     .staff-badge { background-color: #d32f2f; color: white; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
     .pilot-info { font-size: 12px; color: #7f8c8d; margin-top: 2px; display: flex; align-items: center; gap: 5px; }
     
-    /* BADGE INACTIF */
     .badge-inactive { background-color: #95a5a6; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
 
     /* STYLE FLIGHT CARD */
@@ -296,7 +298,6 @@ ROSTER_DATA = [
     {"id": "THT1004", "nom": "Bonno T.", "grade": "PPL", "role": "Pilote", "fshub_id": "23713", "default": "196h"},
     {"id": "THT1005", "nom": "Frédéric B.", "grade": "CPL", "role": "Pilote", "fshub_id": "12054", "default": "288h"},
     {"id": "THT1006", "nom": "Mattias G.", "grade": "CDB", "role": "STAFF", "fshub_id": "28103", "default": "74h"},
-    
     {"id": "THT1007", "nom": "Jordan M.", "grade": "EP", "role": "Pilote", "fshub_id": "19702", "default": "111h"},
     {"id": "THT1008", "nom": "Mathieu G.", "grade": "EP", "role": "Pilote", "fshub_id": "1360", "default": "96h"},
     {"id": "THT1009", "nom": "Daniel V.", "grade": "EP", "role": "Pilote", "fshub_id": "28217", "default": "598h"},
@@ -359,7 +360,6 @@ def get_fshub_flights():
         return pd.DataFrame(), False 
     except: return pd.DataFrame(), False
 
-# --- NOUVELLE FONCTION SCRAPER PERSO (CORRIGÉE v48) ---
 @st.cache_data(ttl=300)
 def get_pilot_personal_flights(fshub_id):
     if not fshub_id: return pd.DataFrame(), False
@@ -367,17 +367,39 @@ def get_pilot_personal_flights(fshub_id):
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
         dfs = pd.read_html(url, storage_options=headers)
-        # On cherche une table qui ressemble à un carnet de vol
         for df in dfs:
-            # Nettoyage
             cols_str = [str(c).lower() for c in df.columns]
-            # Critère 1 : Doit avoir au moins 5 colonnes (un log est large)
             if len(df.columns) >= 5:
-                # Critère 2 : Doit contenir des mots clés typiques
                 if any("aircraft" in c for c in cols_str) or any("distance" in c for c in cols_str) or any("time" in c for c in cols_str):
                     return df, True
         return pd.DataFrame(), False
     except: return pd.DataFrame(), False
+
+# --- FONCTION ENVOI EMAIL SMTP ---
+def send_email_via_ionos(subject, body):
+    try:
+        # Récupération des secrets
+        smtp_server = st.secrets["email"]["smtp_server"]
+        smtp_port = st.secrets["email"]["smtp_port"]
+        username = st.secrets["email"]["username"]
+        password = st.secrets["email"]["password"]
+        receiver = st.secrets["email"]["receiver_email"]
+
+        # Création du message
+        msg = MIMEMultipart()
+        msg['From'] = username
+        msg['To'] = receiver
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'plain'))
+
+        # Connexion et envoi
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(username, password)
+            server.send_message(msg)
+        return True
+    except Exception as e:
+        return str(e)
 
 # --- 5. SESSION ---
 if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
@@ -488,7 +510,7 @@ else:
                 except: continue
         else: st.caption(T("demo_mode"))
 
-    # MON ESPACE (CORRIGÉ v48)
+    # MON ESPACE
     elif selection == T("menu_profile"):
         st.title(T("profile_title"))
         current_pilot = next((p for p in ROSTER_DATA if p['id'] == st.session_state['username']), None)
@@ -509,23 +531,14 @@ else:
             if current_pilot['fshub_id']:
                 my_flights_df, success = get_pilot_personal_flights(current_pilot['fshub_id'])
                 if success and not my_flights_df.empty:
-                    # Affichage des 5 derniers vols avec extraction par POSITION (plus sûr)
                     for index, row in my_flights_df.head(5).iterrows():
                         try:
-                            # HYPOTHESE STRUCTURE FSHUB (Souvent: 0=Airline, 1=Dep, 2=Arr, 3=Aircraft, 4=Dist, 5=Time, 6=Ldg, 7=Date)
-                            # On vérifie la taille pour ne pas planter
                             if len(row) >= 4:
-                                dep = str(row.iloc[1]) # Colonne 2
-                                arr = str(row.iloc[2]) # Colonne 3
-                                aircraft = str(row.iloc[3]) # Colonne 4
-                                # Date est souvent la dernière ou avant dernière
+                                dep = str(row.iloc[1])
+                                arr = str(row.iloc[2])
+                                aircraft = str(row.iloc[3])
                                 date_val = str(row.iloc[-1]) if len(row) > 0 else "-"
-                                
-                                st.markdown(f"""
-                                <div class="flight-card" style="border-left: 6px solid #2ecc71;">
-                                    <div class="fc-left"><div class="fc-route">{dep} ➡️ {arr}</div><div class="fc-pilot">📅 {date_val}</div></div>
-                                    <div class="fc-right"><span class="badge-aircraft">{aircraft}</span></div>
-                                </div>""", unsafe_allow_html=True)
+                                st.markdown(f"""<div class="flight-card" style="border-left: 6px solid #2ecc71;"><div class="fc-left"><div class="fc-route">{dep} ➡️ {arr}</div><div class="fc-pilot">📅 {date_val}</div></div><div class="fc-right"><span class="badge-aircraft">{aircraft}</span></div></div>""", unsafe_allow_html=True)
                         except: continue
                 else: st.info("Aucun vol récent trouvé sur fsHub.")
             else: st.warning("Compte non lié à fsHub (ID manquant).")
@@ -570,7 +583,7 @@ else:
                     with cols[j]:
                         st.markdown(f"""<div class="pilot-card"><img src="{PILOT_AVATAR_URL}" class="pilot-img"><div class="pilot-details"><div class="pilot-name">{pilot['id']} - {pilot['nom']}</div><div class="rank-line"><span class="pilot-rank">{pilot['grade']}</span>{staff_html}</div><div class="pilot-info">{heures_display}</div></div></div>""", unsafe_allow_html=True)
 
-    # CHECKLIST A320
+    # CHECKLIST
     elif selection == T("menu_checklist"):
         st.title(T("checklist_title"))
         st.warning(T("checklist_info"))
@@ -609,52 +622,19 @@ else:
             p_time_arr = c_fp_8.text_input(T("form_time_arr"), placeholder="HH:MM")
             st.markdown("---")
             p_remark = st.text_area(T("form_msg") + " (Optionnel)")
+            
             if st.button(T("pirep_send"), type="primary"):
-                if p_flight_nb and p_dep and p_arr:
-                    subject_email = f"[PIREP] {p_flight_nb} : {p_dep}-{p_arr}"
-                    body_email = f"""
-                    PILOTE: {st.session_state['username']}
-                    VOL: {p_flight_nb}
-                    AVION: {p_aircraft}
-                    DEPART: {p_dep} le {p_date_dep} à {p_time_dep}z
-                    ARRIVEE: {p_arr} le {p_date_arr} à {p_time_arr}z
-                    LANDING: {p_landing} fpm
-                    REMARQUES: {p_remark}
-                    """
-                    link_pirep = f"mailto:contact@atnvirtual.fr?subject={urllib.parse.quote(subject_email)}&body={urllib.parse.quote(body_email)}"
-                    st.markdown(f'<meta http-equiv="refresh" content="0;url={link_pirep}">', unsafe_allow_html=True)
-                    st.success("✅ Rapport prêt ! Vérifiez votre logiciel de messagerie.")
-                else: st.error("⚠️ Veuillez remplir au moins le N° de Vol, Départ et Arrivée.")
-
-    # METAR ON DEMAND
-    elif selection == T("menu_metar"):
-        st.title(T("metar_title"))
-        st.write(T("metar_desc"))
-        with st.container(border=True):
-            c_met_1, c_met_2 = st.columns([3, 1])
-            with c_met_1: icao_search = st.text_input(T("metar_label"), max_chars=4, placeholder="ex: NTAA").upper()
-            with c_met_2:
-                st.write(""); st.write("")
-                search_btn = st.button(T("metar_btn"), type="primary", use_container_width=True)
-            if search_btn and icao_search:
-                st.markdown("---")
-                raw_metar = get_real_metar(icao_search)
-                if "⚠️" not in raw_metar:
-                    data = extract_metar_data(raw_metar)
-                    st.subheader(f"📍 {icao_search} - {T('metar_decoded')}")
-                    m1, m2, m3 = st.columns(3)
-                    m1.metric("💨 Vent / Wind", data["Wind"])
-                    m2.metric("🌡️ Temp.", data["Temp"])
-                    m3.metric("⏱️ QNH", data["QNH"])
-                    st.write("")
-                    st.caption(T("metar_raw"))
-                    st.code(raw_metar, language="text")
-                else: st.error(raw_metar)
+                subject = f"[PIREP] {p_flight_nb} : {p_dep}-{p_arr}"
+                body = f"PILOTE: {st.session_state['username']}\nVOL: {p_flight_nb}\nAVION: {p_aircraft}\nDEPART: {p_dep} le {p_date_dep} à {p_time_dep}z\nARRIVEE: {p_arr} le {p_date_arr} à {p_time_arr}z\nLANDING: {p_landing} fpm\nREMARQUES: {p_remark}"
+                try:
+                    res = send_email_via_ionos(subject, body)
+                    if res is True: st.success(T("email_success"))
+                    else: st.error(T("email_error") + str(res))
+                except Exception as e: st.error(str(e))
 
     # VALIDATION TOURS
     elif selection == T("menu_tours"):
         st.title("🏆 Validation d'Étape de Tour")
-        st.info("Utilisez ce formulaire uniquement pour valider une étape de tour pilote.")
         with st.container(border=True):
             col_main1, col_main2 = st.columns(2)
             with col_main1:
@@ -672,12 +652,14 @@ else:
                 date_flight = st.date_input("Date du vol")
                 flight_time = st.text_input("Temps de vol (Block)", placeholder="ex: 01:45")
             comment = st.text_area("Lien du rapport fsHub (Optionnel) ou Remarques")
-            subject = f"VALIDATION TOUR - {selected_tour} - Etape {leg_number} - {st.session_state['username']}"
-            email_body = f"PILOTE: {st.session_state['username']}\nTOUR: {selected_tour}\nETAPE: {leg_number}\nREMARQUES: {comment}"
-            link = f"mailto:besnier.guillaume@yahoo.fr?subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(email_body)}"
-            st.markdown("---")
-            st.markdown(f"""<a href="{link}" target="_blank"><button style="width:100%; background-color:#009dff; color:white; padding:15px; border-radius:10px; border:none; font-weight:bold; cursor:pointer;">✅ ENVOYER LA VALIDATION</button></a>""", unsafe_allow_html=True)
-    
+            
+            if st.button("✅ ENVOYER LA VALIDATION (Direct)", type="primary"):
+                subject = f"VALIDATION TOUR - {selected_tour} - Etape {leg_number} - {st.session_state['username']}"
+                body = f"PILOTE: {st.session_state['username']}\nTOUR: {selected_tour}\nETAPE: {leg_number}\nREMARQUES: {comment}"
+                res = send_email_via_ionos(subject, body)
+                if res is True: st.success(T("email_success"))
+                else: st.error(T("email_error") + str(res))
+
     # CONTACT
     elif selection == T("menu_contact"):
         st.title(T("contact_title"))
@@ -694,7 +676,10 @@ else:
                 st.text_input("De (Expéditeur)", value=st.session_state['username'], disabled=True)
                 sujet_contact = st.text_input(T("form_subject"), placeholder="ex: Problème PIREP...")
                 message_contact = st.text_area(T("form_msg"), height=150)
-                subject_email = f"[Crew Center] {sujet_contact}" if sujet_contact else "[Crew Center] Nouvelle demande"
-                body_email = f"De: {st.session_state['username']}\n\n{message_contact}" if message_contact else f"De: {st.session_state['username']}\n\n..."
-                link_contact = f"mailto:contact@atnvirtual.fr?subject={urllib.parse.quote(subject_email)}&body={urllib.parse.quote(body_email)}"
-                st.markdown(f"""<a href="{link_contact}" target="_blank" style="text-decoration:none;"><button style="width:100%; background-color:#009dff; color:white; padding:15px; border-radius:8px; border:none; font-weight:bold; cursor:pointer; font-size:16px; margin-top:10px;">{T("contact_send")} ✈️</button></a>""", unsafe_allow_html=True)
+                
+                if st.button(T("contact_send"), type="primary"):
+                    subject = f"[Crew Center] {sujet_contact}"
+                    body = f"De: {st.session_state['username']}\n\n{message_contact}"
+                    res = send_email_via_ionos(subject, body)
+                    if res is True: st.success(T("email_success"))
+                    else: st.error(T("email_error") + str(res))
