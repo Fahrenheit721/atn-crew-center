@@ -4,7 +4,7 @@ import requests
 import urllib.parse
 from datetime import datetime
 import os
-import base64 # Nécessaire pour l'image en HTML
+import base64
 import streamlit.components.v1 as components
 
 # --- 1. CONFIGURATION & STYLE ---
@@ -17,8 +17,10 @@ if 'lang' not in st.session_state: st.session_state['lang'] = 'FR'
 TRANS = {
     "FR": {
         "menu_home": "🏠 Accueil",
+        "menu_profile": "👤 Mon Espace",
         "menu_events": "📅 Événements",
         "menu_roster": "👨‍✈️ Roster Pilotes",
+        "menu_radar": "🌍 Radar Live",
         "menu_pirep": "📝 PIREP Manuel",
         "menu_metar": "🌦️ Météo / METAR",
         "menu_tours": "🏆 Validation Tours",
@@ -29,7 +31,7 @@ TRANS = {
         "stats_hours": "Heures Totales",
         "stats_flights": "Vols Effectués",
         "stats_landing": "Landing Moyen",
-        "recent_flights": "✈️ Vols Récents",
+        "recent_flights": "✈️ Vols Récents (Global)",
         "demo_mode": "ℹ️ Mode Démo (Données simulées)",
         "event_title": "Prochains événements",
         "roster_title": "L'Équipe ATN-Virtual",
@@ -63,14 +65,21 @@ TRANS = {
         "checklist_info": "⚠️ MODULE EN DÉVELOPPEMENT : Cette checklist interactive est actuellement en phase de test (BETA). Elle est conçue pour la famille A320 (A319/A320/A321) et sera amenée à évoluer prochainement avec de nouvelles fonctionnalités.",
         "checklist_complete": "✅ CHECKLIST COMPLETED",
         "checklist_reset": "🔄 Réinitialiser la Checklist",
+        "profile_title": "Mon Espace Pilote",
+        "profile_career": "Ma Carrière",
+        "profile_flights": "Mes Derniers Vols",
+        "profile_grade": "Grade Actuel",
+        "profile_hours": "Mes Heures",
         "logout": "Déconnexion",
         "ext_tools": "Outils Externes",
         "lang_select": "Langue / Language"
     },
     "EN": {
         "menu_home": "🏠 Home",
+        "menu_profile": "👤 My Profile",
         "menu_events": "📅 Events",
         "menu_roster": "👨‍✈️ Pilot Roster",
+        "menu_radar": "🌍 Live Radar",
         "menu_pirep": "📝 Manual PIREP",
         "menu_metar": "🌦️ Weather / METAR",
         "menu_tours": "🏆 Tour Validation",
@@ -81,7 +90,7 @@ TRANS = {
         "stats_hours": "Total Hours",
         "stats_flights": "Flights Flown",
         "stats_landing": "Avg Landing",
-        "recent_flights": "✈️ Recent Flights",
+        "recent_flights": "✈️ Recent Flights (Global)",
         "demo_mode": "ℹ️ Demo Mode (Simulated Data)",
         "event_title": "Upcoming Events",
         "roster_title": "ATN-Virtual Team",
@@ -115,14 +124,21 @@ TRANS = {
         "checklist_info": "⚠️ UNDER DEVELOPMENT: This interactive checklist is currently in BETA testing phase. It is designed for the A320 Family (A319/A320/A321) and will evolve soon with new features.",
         "checklist_complete": "✅ CHECKLIST COMPLETED",
         "checklist_reset": "🔄 Reset Checklist",
+        "profile_title": "My Pilot Area",
+        "profile_career": "My Career",
+        "profile_flights": "My Last Flights",
+        "profile_grade": "Current Rank",
+        "profile_hours": "My Hours",
         "logout": "Logout",
         "ext_tools": "External Tools",
         "lang_select": "Langue / Language"
     },
     "ES": {
         "menu_home": "🏠 Inicio",
+        "menu_profile": "👤 Mi Perfil",
         "menu_events": "📅 Eventos",
         "menu_roster": "👨‍✈️ Lista de Pilotos",
+        "menu_radar": "🌍 Radar en Vivo",
         "menu_pirep": "📝 PIREP Manual",
         "menu_metar": "🌦️ Clima / METAR",
         "menu_tours": "🏆 Validación Tours",
@@ -167,6 +183,11 @@ TRANS = {
         "checklist_info": "⚠️ EN DESARROLLO: Esta checklist interactiva está en fase BETA. Diseñada para la familia A320 (A319/A320/A321) y evolucionará pronto.",
         "checklist_complete": "✅ CHECKLIST COMPLETED",
         "checklist_reset": "🔄 Reiniciar Checklist",
+        "profile_title": "Mi Zona Piloto",
+        "profile_career": "Mi Carrera",
+        "profile_flights": "Mis Últimos Vuelos",
+        "profile_grade": "Rango Actual",
+        "profile_hours": "Mis Horas",
         "logout": "Cerrar Sesión",
         "ext_tools": "Herramientas Externas",
         "lang_select": "Langue / Language"
@@ -190,7 +211,6 @@ A320_CHECKLIST_DATA = {
 
 # --- GESTION DES IMAGES ---
 LOGO_FILE = "u_23309_200.png" 
-# Fonction pour convertir l'image locale en Base64 (pour l'affichage HTML forcé)
 def get_img_as_base64(file):
     try:
         with open(file, "rb") as f:
@@ -199,8 +219,6 @@ def get_img_as_base64(file):
     except: return None
 
 LOGO_BASE64 = get_img_as_base64(LOGO_FILE) if os.path.exists(LOGO_FILE) else None
-
-# URL de repli si pas d'image locale
 LOGO_URL = f"data:image/png;base64,{LOGO_BASE64}" if LOGO_BASE64 else "https://img.fshub.io/images/airlines/2275/avatar.png"
 PILOT_AVATAR_URL = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
 
@@ -213,7 +231,6 @@ st.markdown("""
     .metar-box { background-color: #e3f2fd; border-left: 5px solid rgb(0, 157, 255); padding: 15px; font-family: monospace; color: black; }
     .stButton button { width: 100%; }
     
-    /* CSS pour centrer l'image logo login si nécessaire */
     .login-logo-container { display: flex; justify-content: center; width: 100%; margin-bottom: 20px; }
     .login-logo { width: 150px; height: auto; }
 
@@ -228,7 +245,6 @@ st.markdown("""
     .staff-badge { background-color: #d32f2f; color: white; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
     .pilot-info { font-size: 12px; color: #7f8c8d; margin-top: 2px; display: flex; align-items: center; gap: 5px; }
     
-    /* BADGE INACTIF */
     .badge-inactive { background-color: #95a5a6; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
 
     /* STYLE FLIGHT CARD */
@@ -273,7 +289,6 @@ ROSTER_DATA = [
     {"id": "THT1004", "nom": "Bonno T.", "grade": "PPL", "role": "Pilote", "fshub_id": "23713", "default": "196h"},
     {"id": "THT1005", "nom": "Frédéric B.", "grade": "CPL", "role": "Pilote", "fshub_id": "12054", "default": "288h"},
     {"id": "THT1006", "nom": "Mattias G.", "grade": "CDB", "role": "STAFF", "fshub_id": "28103", "default": "74h"},
-    
     {"id": "THT1007", "nom": "Jordan M.", "grade": "EP", "role": "Pilote", "fshub_id": "19702", "default": "111h"},
     {"id": "THT1008", "nom": "Mathieu G.", "grade": "EP", "role": "Pilote", "fshub_id": "1360", "default": "96h"},
     {"id": "THT1009", "nom": "Daniel V.", "grade": "EP", "role": "Pilote", "fshub_id": "28217", "default": "598h"},
@@ -316,7 +331,6 @@ def get_all_pilots_hours_global():
             df.columns = [c.strip() for c in df.columns]
             col_pilot = next((c for c in df.columns if "Pilot" in c), None)
             col_hours = next((c for c in df.columns if "Hour" in c), None)
-            
             if col_pilot and col_hours:
                 for index, row in df.iterrows():
                     p_name = str(row[col_pilot])
@@ -329,18 +343,30 @@ def get_all_pilots_hours_global():
 def get_fshub_flights():
     url = "https://fshub.io/airline/THT/overview"
     headers = {'User-Agent': 'Mozilla/5.0'}
-    demo_data = pd.DataFrame([
-        ["THT1001", "NTAA", "KLAX", "B789", "08:15", "2024-02-22", "-142 fpm"],
-        ["THT1003", "NCRG", "NTAA", "AT76", "00:45", "2024-02-21", "-85 fpm"],
-        ["THT1009", "NTAA", "NTTB", "DH8D", "00:30", "2024-02-20", "-210 fpm"]
-    ], columns=["Pilot", "Dep", "Arr", "Aircraft", "Duration", "Date", "Landing"])
     try:
         import lxml
         dfs = pd.read_html(url, storage_options=headers)
         for df in dfs:
             if len(df.columns) >= 5: return df, True
-        return demo_data, False 
-    except: return demo_data, False
+        return pd.DataFrame(), False 
+    except: return pd.DataFrame(), False
+
+# --- NOUVELLE FONCTION SCRAPER PERSO ---
+@st.cache_data(ttl=300)
+def get_pilot_personal_flights(fshub_id):
+    if not fshub_id: return pd.DataFrame(), False
+    url = f"https://fshub.io/pilot/{fshub_id}"
+    try:
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        dfs = pd.read_html(url, storage_options=headers)
+        # On cherche la table des vols (généralement la plus large)
+        for df in dfs:
+            # Critère : doit avoir Dep, Arr et Aircraft
+            cols = [c.lower() for c in df.columns]
+            if any("dep" in c for c in cols) and any("arr" in c for c in cols):
+                return df, True
+        return pd.DataFrame(), False
+    except: return pd.DataFrame(), False
 
 # --- 5. SESSION ---
 if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
@@ -348,14 +374,7 @@ if 'event_participants' not in st.session_state: st.session_state['event_partici
 
 # --- 6. LOGIN ---
 def login_page():
-    # Affichage du logo centré en HTML pour être sûr
-    st.markdown(f"""
-        <div class="login-logo-container">
-            <img src="{LOGO_URL}" class="login-logo">
-        </div>
-        <h1 style='text-align: center;'>CREW CENTER ATN-VIRTUAL VA</h1>
-    """, unsafe_allow_html=True)
-    
+    st.markdown(f"""<div class="login-logo-container"><img src="{LOGO_URL}" class="login-logo"></div><h1 style='text-align: center;'>CREW CENTER ATN-VIRTUAL VA</h1>""", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         with st.form("login"):
@@ -371,17 +390,10 @@ def login_page():
         st.markdown("---")
         with st.container(border=True):
             st.markdown("<h3 class='center-text'>🌟 Rejoignez l'aventure !</h3>", unsafe_allow_html=True)
-            st.markdown("""
-            <div style='text-align: center; color: #57606a; margin-bottom: 20px;'>
-            Embarquez pour une expérience immersive au cœur du Pacifique. 
-            Du vol inter-îles en ATR au long-courrier en Dreamliner, 
-            vivez la simulation autrement dans une ambiance conviviale et professionnelle.
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown("""<div style='text-align: center; color: #57606a; margin-bottom: 20px;'>Embarquez pour une expérience immersive au cœur du Pacifique. Du vol inter-îles en ATR au long-courrier en Dreamliner, vivez la simulation autrement dans une ambiance conviviale et professionnelle.</div>""", unsafe_allow_html=True)
             c_invit1, c_invit2 = st.columns(2)
             with c_invit1: st.link_button("📝 Inscription fsHub", "https://fshub.io/airline/THT/overview", use_container_width=True)
             with c_invit2: st.link_button("🌐 Notre Site Web", "https://www.atnvirtual.fr/", use_container_width=True)
-            
             st.markdown("---")
             st.info("ℹ️ **Information d'accès :** Vos identifiants personnels pour ce Crew Center vous seront communiqués par le Staff une fois votre inscription validée sur fsHub.")
 
@@ -392,36 +404,8 @@ else:
     with st.sidebar:
         try: st.image(LOGO_URL, width=100)
         except: st.write("🌺 ATN")
-        
         st.title("ATN-Virtual")
-        
-        # --- HORLOGE ZULU & DATE ---
-        components.html(
-            """
-            <div style="text-align: center; font-family: 'Segoe UI', sans-serif; color: white; background-color: #009dff; padding: 10px; border-radius: 8px;">
-                <div id="date" style="font-size: 14px; margin-bottom: 2px; opacity: 0.9;">--/--/----</div>
-                <div id="clock" style="font-size: 22px; font-weight: bold;">--:--:-- Z</div>
-            </div>
-            <script>
-            function updateTime() {
-                const now = new Date();
-                const time = now.getUTCHours().toString().padStart(2, '0') + ':' +
-                             now.getUTCMinutes().toString().padStart(2, '0') + ':' +
-                             now.getUTCSeconds().toString().padStart(2, '0') + ' Z';
-                const date = now.getUTCFullYear() + '-' +
-                             (now.getUTCMonth() + 1).toString().padStart(2, '0') + '-' +
-                             now.getUTCDate().toString().padStart(2, '0');
-                             
-                document.getElementById('clock').innerText = time;
-                document.getElementById('date').innerText = date;
-            }
-            setInterval(updateTime, 1000);
-            updateTime();
-            </script>
-            """,
-            height=75
-        )
-        
+        components.html("""<div style="text-align: center; font-family: 'Segoe UI', sans-serif; color: white; background-color: #009dff; padding: 10px; border-radius: 8px;"><div id="date" style="font-size: 14px; margin-bottom: 2px; opacity: 0.9;">--/--/----</div><div id="clock" style="font-size: 22px; font-weight: bold;">--:--:-- Z</div></div><script>function updateTime() {const now = new Date();const time = now.getUTCHours().toString().padStart(2, '0') + ':' + now.getUTCMinutes().toString().padStart(2, '0') + ':' + now.getUTCSeconds().toString().padStart(2, '0') + ' Z';const date = now.getUTCFullYear() + '-' + (now.getUTCMonth() + 1).toString().padStart(2, '0') + '-' + now.getUTCDate().toString().padStart(2, '0');document.getElementById('clock').innerText = time;document.getElementById('date').innerText = date;}setInterval(updateTime, 1000);updateTime();</script>""", height=75)
         st.caption(f"CDB : {st.session_state['username']}")
         if st.button(T("logout")):
             st.session_state['logged_in'] = False
@@ -430,6 +414,7 @@ else:
         
         nav_options = [
             T("menu_home"),
+            T("menu_profile"),
             T("menu_events"),
             T("menu_roster"),
             T("menu_pirep"),
@@ -438,12 +423,10 @@ else:
             T("menu_checklist"),
             T("menu_contact")
         ]
-        
         selection = st.radio("Navigation", nav_options)
         
         st.markdown("---")
         st.link_button("🌍 Radar Live", "https://fshub.io/airline/THT/radar")
-        
         st.markdown("---")
         st.link_button("💬 Discord", "https://discord.gg/BQqtsrFJ")
         st.link_button("🌐 Site Officiel", "https://www.atnvirtual.fr/")
@@ -451,7 +434,6 @@ else:
         col_s1, col_s2 = st.columns(2)
         with col_s1: st.link_button("🌍 WebEye", "https://webeye.ivao.aero")
         with col_s2: st.link_button("📊 fsHub", "https://fshub.io/airline/THT/overview")
-
         st.markdown("---")
         st.caption(T("lang_select"))
         col_fr, col_en, col_es = st.columns(3)
@@ -481,36 +463,84 @@ else:
         st.markdown("---")
         st.subheader(T("recent_flights"))
         flights_df, success = get_fshub_flights()
-        display_flights = flights_df.head(5)
-        for index, row in display_flights.iterrows():
-            try:
-                pilot = row.iloc[0]; dep = row.iloc[1]; arr = row.iloc[2]; aircraft = row.iloc[3]
-                landing_val = str(row.iloc[6]) if len(row) > 6 else "-"
-                landing_cls = "landing-good"
-                if "fpm" in landing_val:
-                    try:
-                        if int(landing_val.replace("fpm","").replace("-","").strip()) > 400: landing_cls = "landing-hard"
-                    except: pass
-                date_txt = row.iloc[5] if len(row) > 5 else "Aujourd'hui"
-                st.markdown(f"""
-                <div class="flight-card">
-                    <div class="fc-left"><div class="fc-route">{dep} - {arr}</div><div class="fc-pilot">👨‍✈️ {pilot}</div></div>
-                    <div class="fc-right"><div class="fc-badges"><span class="badge-aircraft">✈️ {aircraft}</span><span class="badge-landing {landing_cls}">📉 {landing_val}</span></div><div class="fc-date">{date_txt}</div></div>
-                </div>""", unsafe_allow_html=True)
-            except: continue
-        if not success: st.caption(T("demo_mode"))
+        if not flights_df.empty:
+            display_flights = flights_df.head(5)
+            for index, row in display_flights.iterrows():
+                try:
+                    # Adaptation dynamique aux colonnes
+                    cols = row.index
+                    pilot = row[cols[0]]
+                    dep = row[cols[1]]
+                    arr = row[cols[2]]
+                    aircraft = row[cols[3]]
+                    date_txt = row[cols[5]] if len(cols)>5 else ""
+                    
+                    st.markdown(f"""<div class="flight-card"><div class="fc-left"><div class="fc-route">{dep} - {arr}</div><div class="fc-pilot">👨‍✈️ {pilot}</div></div><div class="fc-right"><div class="fc-badges"><span class="badge-aircraft">✈️ {aircraft}</span></div><div class="fc-date">{date_txt}</div></div></div>""", unsafe_allow_html=True)
+                except: continue
+        else: st.caption(T("demo_mode"))
+
+    # MON ESPACE (NOUVEAU)
+    elif selection == T("menu_profile"):
+        st.title(T("profile_title"))
+        
+        # Trouver le pilote connecté
+        current_pilot = next((p for p in ROSTER_DATA if p['id'] == st.session_state['username']), None)
+        
+        if current_pilot:
+            st.write(f"### 👋 {current_pilot['nom']}")
+            
+            # --- SECTION CARRIERE ---
+            st.markdown(f"#### {T('profile_career')}")
+            
+            # Récupération Heures
+            global_hours = get_all_pilots_hours_global()
+            my_hours = current_pilot['default'] # Fallback
+            for name, h in global_hours.items():
+                if current_pilot['id'] in name:
+                    my_hours = h
+                    break
+            
+            c_prof1, c_prof2 = st.columns(2)
+            c_prof1.metric(T("profile_grade"), current_pilot['grade'])
+            c_prof2.metric(T("profile_hours"), my_hours)
+            
+            st.markdown("---")
+            
+            # --- SECTION VOLS PERSONNELS ---
+            st.markdown(f"#### {T('profile_flights')}")
+            if current_pilot['fshub_id']:
+                my_flights_df, success = get_pilot_personal_flights(current_pilot['fshub_id'])
+                if success and not my_flights_df.empty:
+                    # Affichage des 5 derniers vols en format Carte
+                    for index, row in my_flights_df.head(5).iterrows():
+                        try:
+                            # On essaie de mapper les colonnes intelligemment
+                            # Souvent: 0=Airline, 1=Flight, 2=Dep, 3=Arr, 4=Aircraft...
+                            # On va afficher brut mais joli
+                            cols = row.index
+                            # On cherche les colonnes clés
+                            dep = row[next(c for c in cols if "dep" in c.lower())]
+                            arr = row[next(c for c in cols if "arr" in c.lower())]
+                            aircraft = row[next(c for c in cols if "air" in c.lower())]
+                            date_val = row[next(c for c in cols if "date" in c.lower())]
+                            
+                            st.markdown(f"""
+                            <div class="flight-card" style="border-left: 6px solid #2ecc71;">
+                                <div class="fc-left"><div class="fc-route">{dep} ➡️ {arr}</div><div class="fc-pilot">📅 {date_val}</div></div>
+                                <div class="fc-right"><span class="badge-aircraft">{aircraft}</span></div>
+                            </div>""", unsafe_allow_html=True)
+                        except: continue
+                else:
+                    st.info("Aucun vol récent trouvé sur fsHub.")
+            else:
+                st.warning("Compte non lié à fsHub (ID manquant).")
+        else:
+            st.error("Profil introuvable. Êtes-vous bien enregistré dans le Roster ?")
 
     # EVENEMENTS
     elif selection == T("menu_events"):
         st.title(T("event_title"))
-        st.markdown("""
-        <div class="event-card">
-            <div class="ev-date-box"><div class="ev-day">22</div><div class="ev-month">FÉV</div></div>
-            <div class="ev-details">
-                <div class="ev-title">🎉 1 An de la VA</div>
-                <div class="ev-meta"><span>🕒 19:00 Z</span><span>📍 Hub NTAA</span><span class="ev-tag">Event Hub</span></div>
-            </div>
-        </div>""", unsafe_allow_html=True)
+        st.markdown("""<div class="event-card"><div class="ev-date-box"><div class="ev-day">22</div><div class="ev-month">FÉV</div></div><div class="ev-details"><div class="ev-title">🎉 1 An de la VA</div><div class="ev-meta"><span>🕒 19:00 Z</span><span>📍 Hub NTAA</span><span class="ev-tag">Event Hub</span></div></div></div>""", unsafe_allow_html=True)
         c1, c2, c3, c4 = st.columns([1, 1, 1, 3])
         uid = st.session_state['username']
         with c1:
@@ -524,34 +554,25 @@ else:
             st.write("### 👥 Participants")
             st.dataframe(pd.DataFrame(list(st.session_state['event_participants'].items()), columns=['Pilote', 'Statut']), use_container_width=True)
 
-    # ROSTER (CLEAN & ROBUSTE)
+    # ROSTER
     elif selection == T("menu_roster"):
         st.title(T("roster_title"))
         st.caption(T("roster_sync"))
         st.markdown("---")
-        
         global_hours_map = get_all_pilots_hours_global()
-        
         cols_per_row = 3
         for i in range(0, len(ROSTER_DATA), cols_per_row):
             cols = st.columns(cols_per_row)
             for j in range(cols_per_row):
                 if i + j < len(ROSTER_DATA):
                     pilot = ROSTER_DATA[i + j]
-                    staff_html = ""
-                    if pilot['role'] == "STAFF": staff_html = '<span class="staff-badge">STAFF</span>'
-                    
+                    staff_html = '<span class="staff-badge">STAFF</span>' if pilot['role'] == "STAFF" else ""
                     final_hours = pilot['default']
                     for name_key, hours_val in global_hours_map.items():
                         if pilot['id'] in name_key:
                             final_hours = hours_val
                             break
-                    
-                    if final_hours and final_hours != "-":
-                        heures_display = f"⏱️ {final_hours}"
-                    else:
-                        heures_display = f"<span class='badge-inactive'>{T('roster_inactive')}</span>"
-                    
+                    heures_display = f"⏱️ {final_hours}" if final_hours and final_hours != "-" else f"<span class='badge-inactive'>{T('roster_inactive')}</span>"
                     with cols[j]:
                         st.markdown(f"""<div class="pilot-card"><img src="{PILOT_AVATAR_URL}" class="pilot-img"><div class="pilot-details"><div class="pilot-name">{pilot['id']} - {pilot['nom']}</div><div class="rank-line"><span class="pilot-rank">{pilot['grade']}</span>{staff_html}</div><div class="pilot-info">{heures_display}</div></div></div>""", unsafe_allow_html=True)
 
@@ -559,12 +580,10 @@ else:
     elif selection == T("menu_checklist"):
         st.title(T("checklist_title"))
         st.warning(T("checklist_info"))
-        
         if st.button(T("checklist_reset")):
             for key in st.session_state.keys():
                 if key.startswith("chk_"): st.session_state[key] = False
             st.rerun()
-        
         for phase, items in A320_CHECKLIST_DATA.items():
             with st.expander(f"🔹 {phase}", expanded=False):
                 completed = True
@@ -611,8 +630,7 @@ else:
                     link_pirep = f"mailto:contact@atnvirtual.fr?subject={urllib.parse.quote(subject_email)}&body={urllib.parse.quote(body_email)}"
                     st.markdown(f'<meta http-equiv="refresh" content="0;url={link_pirep}">', unsafe_allow_html=True)
                     st.success("✅ Rapport prêt ! Vérifiez votre logiciel de messagerie.")
-                else:
-                    st.error("⚠️ Veuillez remplir au moins le N° de Vol, Départ et Arrivée.")
+                else: st.error("⚠️ Veuillez remplir au moins le N° de Vol, Départ et Arrivée.")
 
     # METAR ON DEMAND
     elif selection == T("menu_metar"):
@@ -669,31 +687,20 @@ else:
     # CONTACT
     elif selection == T("menu_contact"):
         st.title(T("contact_title"))
-        
         c_contact_1, c_contact_2 = st.columns([1, 2])
-        
         with c_contact_1:
             try: st.image(LOGO_URL, width=150)
             except: pass
             st.write("### ATN-Virtual Staff")
             st.info(T("contact_desc"))
             st.caption("Réponse sous 24/48h")
-        
         with c_contact_2:
             with st.container(border=True):
                 st.write("#### 📩 Formulaire")
                 st.text_input("De (Expéditeur)", value=st.session_state['username'], disabled=True)
                 sujet_contact = st.text_input(T("form_subject"), placeholder="ex: Problème PIREP...")
                 message_contact = st.text_area(T("form_msg"), height=150)
-                
                 subject_email = f"[Crew Center] {sujet_contact}" if sujet_contact else "[Crew Center] Nouvelle demande"
                 body_email = f"De: {st.session_state['username']}\n\n{message_contact}" if message_contact else f"De: {st.session_state['username']}\n\n..."
                 link_contact = f"mailto:contact@atnvirtual.fr?subject={urllib.parse.quote(subject_email)}&body={urllib.parse.quote(body_email)}"
-                
-                st.markdown(f"""
-                <a href="{link_contact}" target="_blank" style="text-decoration:none;">
-                    <button style="width:100%; background-color:#009dff; color:white; padding:15px; border-radius:8px; border:none; font-weight:bold; cursor:pointer; font-size:16px; margin-top:10px;">
-                        {T("contact_send")} ✈️
-                    </button>
-                </a>
-                """, unsafe_allow_html=True)
+                st.markdown(f"""<a href="{link_contact}" target="_blank" style="text-decoration:none;"><button style="width:100%; background-color:#009dff; color:white; padding:15px; border-radius:8px; border:none; font-weight:bold; cursor:pointer; font-size:16px; margin-top:10px;">{T("contact_send")} ✈️</button></a>""", unsafe_allow_html=True)
