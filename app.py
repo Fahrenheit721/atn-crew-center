@@ -1,17 +1,3 @@
-C'est parfait ! Avec ces deux pièces manquantes, le puzzle est complet. 🧩
-
-Maintenant, 100% de ton équipe est connectée au système de suivi en temps réel. Daniel et Kévin n'auront plus besoin de mise à jour manuelle non plus.
-
-Voici la Version 45.0 (Roster Complet & Connecté).
-
-✅ Ce qui a changé :
-Daniel V. (THT1009) : ID 28217 ajouté.
-
-Kévin (THT1010) : ID 28382 ajouté.
-
-Tout est maintenant opérationnel. Copie ce code final :
-
-Python
 import streamlit as st
 import pandas as pd
 import requests
