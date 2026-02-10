@@ -31,7 +31,7 @@ TRANS = {
         "stats_hours": "Heures Totales",
         "stats_flights": "Vols Effectués",
         "stats_landing": "Landing Moyen",
-        "recent_flights": "✈️ Vols Récents (Global)",
+        "recent_flights": "✈️ Vols Récents",
         "demo_mode": "ℹ️ Mode Démo (Données simulées)",
         "event_title": "Prochains événements",
         "roster_title": "L'Équipe ATN-Virtual",
@@ -90,12 +90,15 @@ TRANS = {
         "stats_hours": "Total Hours",
         "stats_flights": "Flights Flown",
         "stats_landing": "Avg Landing",
-        "recent_flights": "✈️ Recent Flights (Global)",
+        "recent_flights": "✈️ Recent Flights",
         "demo_mode": "ℹ️ Demo Mode (Simulated Data)",
         "event_title": "Upcoming Events",
         "roster_title": "ATN-Virtual Team",
         "roster_inactive": "⛔ INACTIVE",
         "roster_sync": "Data synced with fsHub",
+        "radar_title": "Live Flight Tracking",
+        "radar_desc": "Due to security restrictions from fsHub, the map cannot be displayed directly here. Click below to open the full-screen radar.",
+        "radar_btn": "🌍 OPEN LIVE RADAR (New Tab)",
         "pirep_title": "Submit Manual PIREP",
         "pirep_intro": "Backup Form",
         "pirep_warn": "This form is intended for pilots experiencing technical issues with the tracking client (LRM). Please use the automated client whenever possible for data accuracy.",
@@ -155,6 +158,9 @@ TRANS = {
         "roster_title": "Equipo ATN-Virtual",
         "roster_inactive": "⛔ INACTIVO",
         "roster_sync": "Datos sincronizados con fsHub",
+        "radar_title": "Rastreo de Vuelos en Vivo",
+        "radar_desc": "Debido a restricciones de seguridad de fsHub, el mapa no se puede mostrar aquí. Haga clic abajo para abrir el radar.",
+        "radar_btn": "🌍 ABRIR RADAR EN VIVO (Nueva Pestaña)",
         "pirep_title": "Enviar PIREP Manual",
         "pirep_intro": "Formulario de Respaldo",
         "pirep_warn": "Este formulario está reservado para pilotos con problemas técnicos en el cliente (LRM). Se recomienda usar el cliente automático para mayor precisión.",
@@ -245,6 +251,7 @@ st.markdown("""
     .staff-badge { background-color: #d32f2f; color: white; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
     .pilot-info { font-size: 12px; color: #7f8c8d; margin-top: 2px; display: flex; align-items: center; gap: 5px; }
     
+    /* BADGE INACTIF */
     .badge-inactive { background-color: #95a5a6; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
 
     /* STYLE FLIGHT CARD */
@@ -289,6 +296,7 @@ ROSTER_DATA = [
     {"id": "THT1004", "nom": "Bonno T.", "grade": "PPL", "role": "Pilote", "fshub_id": "23713", "default": "196h"},
     {"id": "THT1005", "nom": "Frédéric B.", "grade": "CPL", "role": "Pilote", "fshub_id": "12054", "default": "288h"},
     {"id": "THT1006", "nom": "Mattias G.", "grade": "CDB", "role": "STAFF", "fshub_id": "28103", "default": "74h"},
+    
     {"id": "THT1007", "nom": "Jordan M.", "grade": "EP", "role": "Pilote", "fshub_id": "19702", "default": "111h"},
     {"id": "THT1008", "nom": "Mathieu G.", "grade": "EP", "role": "Pilote", "fshub_id": "1360", "default": "96h"},
     {"id": "THT1009", "nom": "Daniel V.", "grade": "EP", "role": "Pilote", "fshub_id": "28217", "default": "598h"},
@@ -351,7 +359,7 @@ def get_fshub_flights():
         return pd.DataFrame(), False 
     except: return pd.DataFrame(), False
 
-# --- NOUVELLE FONCTION SCRAPER PERSO ---
+# --- NOUVELLE FONCTION SCRAPER PERSO (CORRIGÉE v48) ---
 @st.cache_data(ttl=300)
 def get_pilot_personal_flights(fshub_id):
     if not fshub_id: return pd.DataFrame(), False
@@ -359,12 +367,15 @@ def get_pilot_personal_flights(fshub_id):
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
         dfs = pd.read_html(url, storage_options=headers)
-        # On cherche la table des vols (généralement la plus large)
+        # On cherche une table qui ressemble à un carnet de vol
         for df in dfs:
-            # Critère : doit avoir Dep, Arr et Aircraft
-            cols = [c.lower() for c in df.columns]
-            if any("dep" in c for c in cols) and any("arr" in c for c in cols):
-                return df, True
+            # Nettoyage
+            cols_str = [str(c).lower() for c in df.columns]
+            # Critère 1 : Doit avoir au moins 5 colonnes (un log est large)
+            if len(df.columns) >= 5:
+                # Critère 2 : Doit contenir des mots clés typiques
+                if any("aircraft" in c for c in cols_str) or any("distance" in c for c in cols_str) or any("time" in c for c in cols_str):
+                    return df, True
         return pd.DataFrame(), False
     except: return pd.DataFrame(), False
 
@@ -467,75 +478,58 @@ else:
             display_flights = flights_df.head(5)
             for index, row in display_flights.iterrows():
                 try:
-                    # Adaptation dynamique aux colonnes
                     cols = row.index
                     pilot = row[cols[0]]
                     dep = row[cols[1]]
                     arr = row[cols[2]]
                     aircraft = row[cols[3]]
                     date_txt = row[cols[5]] if len(cols)>5 else ""
-                    
                     st.markdown(f"""<div class="flight-card"><div class="fc-left"><div class="fc-route">{dep} - {arr}</div><div class="fc-pilot">👨‍✈️ {pilot}</div></div><div class="fc-right"><div class="fc-badges"><span class="badge-aircraft">✈️ {aircraft}</span></div><div class="fc-date">{date_txt}</div></div></div>""", unsafe_allow_html=True)
                 except: continue
         else: st.caption(T("demo_mode"))
 
-    # MON ESPACE (NOUVEAU)
+    # MON ESPACE (CORRIGÉ v48)
     elif selection == T("menu_profile"):
         st.title(T("profile_title"))
-        
-        # Trouver le pilote connecté
         current_pilot = next((p for p in ROSTER_DATA if p['id'] == st.session_state['username']), None)
-        
         if current_pilot:
             st.write(f"### 👋 {current_pilot['nom']}")
-            
-            # --- SECTION CARRIERE ---
             st.markdown(f"#### {T('profile_career')}")
-            
-            # Récupération Heures
             global_hours = get_all_pilots_hours_global()
-            my_hours = current_pilot['default'] # Fallback
+            my_hours = current_pilot['default']
             for name, h in global_hours.items():
                 if current_pilot['id'] in name:
                     my_hours = h
                     break
-            
             c_prof1, c_prof2 = st.columns(2)
             c_prof1.metric(T("profile_grade"), current_pilot['grade'])
             c_prof2.metric(T("profile_hours"), my_hours)
-            
             st.markdown("---")
-            
-            # --- SECTION VOLS PERSONNELS ---
             st.markdown(f"#### {T('profile_flights')}")
             if current_pilot['fshub_id']:
                 my_flights_df, success = get_pilot_personal_flights(current_pilot['fshub_id'])
                 if success and not my_flights_df.empty:
-                    # Affichage des 5 derniers vols en format Carte
+                    # Affichage des 5 derniers vols avec extraction par POSITION (plus sûr)
                     for index, row in my_flights_df.head(5).iterrows():
                         try:
-                            # On essaie de mapper les colonnes intelligemment
-                            # Souvent: 0=Airline, 1=Flight, 2=Dep, 3=Arr, 4=Aircraft...
-                            # On va afficher brut mais joli
-                            cols = row.index
-                            # On cherche les colonnes clés
-                            dep = row[next(c for c in cols if "dep" in c.lower())]
-                            arr = row[next(c for c in cols if "arr" in c.lower())]
-                            aircraft = row[next(c for c in cols if "air" in c.lower())]
-                            date_val = row[next(c for c in cols if "date" in c.lower())]
-                            
-                            st.markdown(f"""
-                            <div class="flight-card" style="border-left: 6px solid #2ecc71;">
-                                <div class="fc-left"><div class="fc-route">{dep} ➡️ {arr}</div><div class="fc-pilot">📅 {date_val}</div></div>
-                                <div class="fc-right"><span class="badge-aircraft">{aircraft}</span></div>
-                            </div>""", unsafe_allow_html=True)
+                            # HYPOTHESE STRUCTURE FSHUB (Souvent: 0=Airline, 1=Dep, 2=Arr, 3=Aircraft, 4=Dist, 5=Time, 6=Ldg, 7=Date)
+                            # On vérifie la taille pour ne pas planter
+                            if len(row) >= 4:
+                                dep = str(row.iloc[1]) # Colonne 2
+                                arr = str(row.iloc[2]) # Colonne 3
+                                aircraft = str(row.iloc[3]) # Colonne 4
+                                # Date est souvent la dernière ou avant dernière
+                                date_val = str(row.iloc[-1]) if len(row) > 0 else "-"
+                                
+                                st.markdown(f"""
+                                <div class="flight-card" style="border-left: 6px solid #2ecc71;">
+                                    <div class="fc-left"><div class="fc-route">{dep} ➡️ {arr}</div><div class="fc-pilot">📅 {date_val}</div></div>
+                                    <div class="fc-right"><span class="badge-aircraft">{aircraft}</span></div>
+                                </div>""", unsafe_allow_html=True)
                         except: continue
-                else:
-                    st.info("Aucun vol récent trouvé sur fsHub.")
-            else:
-                st.warning("Compte non lié à fsHub (ID manquant).")
-        else:
-            st.error("Profil introuvable. Êtes-vous bien enregistré dans le Roster ?")
+                else: st.info("Aucun vol récent trouvé sur fsHub.")
+            else: st.warning("Compte non lié à fsHub (ID manquant).")
+        else: st.error("Profil introuvable.")
 
     # EVENEMENTS
     elif selection == T("menu_events"):
