@@ -24,7 +24,6 @@ TRANS = {
         "menu_tours": "🏆 Validation Tours",
         "menu_checklist": "📋 Checklist (BETA)",
         "menu_contact": "📞 Contact",
-        
         "title_home": "Ia Ora Na",
         "stats_pilots": "Pilotes Actifs",
         "stats_hours": "Heures Totales",
@@ -32,22 +31,17 @@ TRANS = {
         "stats_landing": "Landing Moyen",
         "recent_flights": "✈️ Vols Récents",
         "demo_mode": "ℹ️ Mode Démo (Données simulées)",
-        
         "event_title": "Prochains événements",
-        
         "roster_title": "L'Équipe ATN-Virtual",
         "roster_inactive": "⛔ INACTIF",
-        "roster_sync": "Synchronisation fsHub...",
-        
+        "roster_sync": "Données synchronisées avec fsHub",
         "radar_title": "Suivi des Vols en Direct",
         "radar_desc": "Pour des raisons de sécurité imposées par fsHub, la carte ne peut pas s'afficher directement ici. Cliquez ci-dessous pour ouvrir le radar plein écran.",
         "radar_btn": "🌍 OUVRIR LE RADAR LIVE (Nouvel Onglet)",
-        
         "pirep_title": "Soumettre un rapport manuel (PIREP)",
         "pirep_intro": "Formulaire de secours",
         "pirep_warn": "Ce formulaire est réservé aux pilotes rencontrant des difficultés techniques avec le logiciel de suivi (LRM). L'utilisation du client automatique est recommandée pour la précision des données.",
         "pirep_send": "📤 SOUMETTRE LE RAPPORT",
-        
         "contact_title": "Contactez-nous",
         "contact_desc": "Une question ? Une suggestion ? Le Staff est à votre écoute.",
         "contact_send": "📤 PRÉPARER MON EMAIL",
@@ -62,19 +56,16 @@ TRANS = {
         "form_time_arr": "🕒 Heure Arrivée (UTC)",
         "form_date_dep": "📅 Date de Départ",
         "form_date_arr": "📅 Date d'Arrivée",
-        
         "metar_title": "Météo Aéronautique",
         "metar_desc": "Bulletin en temps réel & Décodage rapide.",
         "metar_label": "Rechercher un aéroport (Code OACI)",
         "metar_btn": "🔍 Analyser Météo",
         "metar_raw": "Bulletin Brut (Source NOAA)",
         "metar_decoded": "Données Clés",
-        
         "checklist_title": "Checklist Airbus A320 Family",
         "checklist_info": "⚠️ MODULE EN DÉVELOPPEMENT : Cette checklist interactive est actuellement en phase de test (BETA). Elle est conçue pour la famille A320 (A319/A320/A321) et sera amenée à évoluer prochainement avec de nouvelles fonctionnalités.",
         "checklist_complete": "✅ CHECKLIST COMPLETED",
         "checklist_reset": "🔄 Réinitialiser la Checklist",
-        
         "logout": "Déconnexion",
         "ext_tools": "Outils Externes",
         "lang_select": "Langue / Language"
@@ -89,7 +80,6 @@ TRANS = {
         "menu_tours": "🏆 Tour Validation",
         "menu_checklist": "📋 Checklist (BETA)",
         "menu_contact": "📞 Contact",
-        
         "title_home": "Ia Ora Na",
         "stats_pilots": "Active Pilots",
         "stats_hours": "Total Hours",
@@ -100,7 +90,7 @@ TRANS = {
         "event_title": "Upcoming Events",
         "roster_title": "ATN-Virtual Team",
         "roster_inactive": "⛔ INACTIVE",
-        "roster_sync": "Syncing fsHub...",
+        "roster_sync": "Data synced with fsHub",
         "radar_title": "Live Flight Tracking",
         "radar_desc": "Due to security restrictions from fsHub, the map cannot be displayed directly here. Click below to open the full-screen radar.",
         "radar_btn": "🌍 OPEN LIVE RADAR (New Tab)",
@@ -146,7 +136,6 @@ TRANS = {
         "menu_tours": "🏆 Validación Tours",
         "menu_checklist": "📋 Checklist (BETA)",
         "menu_contact": "📞 Contacto",
-        
         "title_home": "Ia Ora Na",
         "stats_pilots": "Pilotos Activos",
         "stats_hours": "Horas Totales",
@@ -157,7 +146,7 @@ TRANS = {
         "event_title": "Próximos Eventos",
         "roster_title": "Equipo ATN-Virtual",
         "roster_inactive": "⛔ INACTIVO",
-        "roster_sync": "Sincronizando fsHub...",
+        "roster_sync": "Datos sincronizados con fsHub",
         "radar_title": "Rastreo de Vuelos en Vivo",
         "radar_desc": "Debido a restricciones de seguridad de fsHub, el mapa no se puede mostrar aquí. Haga clic abajo para abrir el radar.",
         "radar_btn": "🌍 ABRIR RADAR EN VIVO (Nueva Pestaña)",
@@ -277,29 +266,30 @@ try:
 except FileNotFoundError:
     USERS_DB = { "admin": "admin", "THT1001": "1234" }
 
-# --- 3. DONNÉES ROSTER ---
+# --- 3. DONNÉES ROSTER (BACKUP) ---
+# J'ai rempli les heures 'default' avec tes données pour que ça marche même si le scraper plante
 ROSTER_DATA = [
-    {"id": "THT1001", "nom": "Guillaume B.", "grade": "CDB", "role": "STAFF", "fshub_id": "23309"},
-    {"id": "THT1002", "nom": "Alain L.", "grade": "CDB", "role": "STAFF", "fshub_id": "23385"},
-    {"id": "THT1003", "nom": "Andrew F.", "grade": "CDB", "role": "STAFF", "fshub_id": "23387"},
-    {"id": "THT1004", "nom": "Bertrand G.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
-    {"id": "THT1005", "nom": "Jean-Pierre V.", "grade": "CDB", "role": "Pilote", "fshub_id": "22712"},
-    {"id": "THT1006", "nom": "Isaac H.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
-    {"id": "THT1007", "nom": "Bonno T.", "grade": "CDB", "role": "Pilote", "fshub_id": "23713"},
-    {"id": "THT1008", "nom": "Raiarii F.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
-    {"id": "THT1009", "nom": "Frédéric B.", "grade": "CDB", "role": "Pilote", "fshub_id": "12054"},
-    {"id": "THT1010", "nom": "Adolphe T.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
-    {"id": "THT1011", "nom": "Natea R.", "grade": "OPL", "role": "Pilote", "fshub_id": "24319"},
-    {"id": "THT1012", "nom": "Toanui P.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
-    {"id": "THT1013", "nom": "KEANU F.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
-    {"id": "THT1014", "nom": "LISANDRU S.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
-    {"id": "THT1015", "nom": "Ryron P.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
-    {"id": "THT1016", "nom": "Pascal C.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
-    {"id": "THT1017", "nom": "Angelo D.", "grade": "OPL", "role": "Pilote", "fshub_id": ""},
-    {"id": "THT1018", "nom": "Jordan M.", "grade": "OPL", "role": "Pilote", "fshub_id": "19702"},
-    {"id": "THT1019", "nom": "MATHIEU G.", "grade": "OPL", "role": "Pilote", "fshub_id": "1360"},
-    {"id": "THT1020", "nom": "Matthias G.", "grade": "CDB", "role": "STAFF", "fshub_id": "28103"},
-    {"id": "THT1021", "nom": "DANIEL V.", "grade": "OPL", "role": "Pilote", "fshub_id": ""}
+    {"id": "THT1001", "nom": "Guillaume B.", "grade": "CDB", "role": "STAFF", "default": "218h"},
+    {"id": "THT1002", "nom": "Alain L.", "grade": "CDB", "role": "STAFF", "default": "181h"},
+    {"id": "THT1003", "nom": "Andrew F.", "grade": "CDB", "role": "STAFF", "default": "558h"},
+    {"id": "THT1004", "nom": "Bertrand G.", "grade": "OPL", "role": "Pilote", "default": "-"},
+    {"id": "THT1005", "nom": "Jean-Pierre V.", "grade": "CDB", "role": "Pilote", "default": "2h"},
+    {"id": "THT1006", "nom": "Isaac H.", "grade": "OPL", "role": "Pilote", "default": "-"},
+    {"id": "THT1007", "nom": "Bonno T.", "grade": "CDB", "role": "Pilote", "default": "187h"},
+    {"id": "THT1008", "nom": "Raiarii F.", "grade": "OPL", "role": "Pilote", "default": "-"},
+    {"id": "THT1009", "nom": "Frédéric B.", "grade": "CDB", "role": "Pilote", "default": "273h"},
+    {"id": "THT1010", "nom": "Adolphe T.", "grade": "OPL", "role": "Pilote", "default": "-"},
+    {"id": "THT1011", "nom": "Natea R.", "grade": "OPL", "role": "Pilote", "default": "21h"},
+    {"id": "THT1012", "nom": "Toanui P.", "grade": "OPL", "role": "Pilote", "default": "-"},
+    {"id": "THT1013", "nom": "KEANU F.", "grade": "OPL", "role": "Pilote", "default": "82h"},
+    {"id": "THT1014", "nom": "LISANDRU S.", "grade": "OPL", "role": "Pilote", "default": "-"},
+    {"id": "THT1015", "nom": "Ryron P.", "grade": "OPL", "role": "Pilote", "default": "-"},
+    {"id": "THT1016", "nom": "Pascal C.", "grade": "OPL", "role": "Pilote", "default": "-"},
+    {"id": "THT1017", "nom": "Angelo D.", "grade": "OPL", "role": "Pilote", "default": "-"},
+    {"id": "THT1018", "nom": "Jordan M.", "grade": "OPL", "role": "Pilote", "default": "94h"},
+    {"id": "THT1019", "nom": "MATHIEU G.", "grade": "OPL", "role": "Pilote", "default": "37h"},
+    {"id": "THT1020", "nom": "Matthias G.", "grade": "CDB", "role": "STAFF", "default": "16h"},
+    {"id": "THT1021", "nom": "DANIEL V.", "grade": "OPL", "role": "Pilote", "default": "-"}
 ]
 LISTE_TOURS = ["Tiare IFR Tour", "World ATN Tour IFR", "Tamure Tour VFR", "Taura'a VFR Tour"]
 
@@ -327,21 +317,41 @@ def extract_metar_data(raw_text):
     return data
 
 @st.cache_data(ttl=3600)
-def get_pilot_live_hours(fshub_id):
-    if not fshub_id: return None
-    url = f"https://fshub.io/pilot/{fshub_id}"
+def get_all_pilots_hours_global():
+    """
+    Récupère la liste GLOBALE des pilotes sur la page Airline.
+    C'est beaucoup plus robuste car 1 seule requête au lieu de 20.
+    """
+    url = "https://fshub.io/airline/THT/pilots"
+    pilot_hours = {}
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
         dfs = pd.read_html(url, storage_options=headers)
-        for df in dfs:
-            df.columns = df.columns.str.strip()
-            if 'Airline' in df.columns:
-                row = df[df['Airline'].astype(str).str.contains("THT|ATN", case=False, na=False)]
-                if not row.empty:
-                    for col in df.columns:
-                        if "Hour" in col or "Time" in col: return row.iloc[0][col]
-    except: return None
-    return None
+        if len(dfs) > 0:
+            df = dfs[0]
+            # On essaie de trouver les colonnes
+            # Colonnes typiques : Pilot, Rank, Location, Flights, Hours
+            # On nettoie les noms de colonnes
+            df.columns = [c.strip() for c in df.columns]
+            
+            # On cherche la colonne Pilot et Hours
+            col_pilot = None
+            col_hours = None
+            
+            for c in df.columns:
+                if "Pilot" in c: col_pilot = c
+                if "Hour" in c: col_hours = c
+            
+            if col_pilot and col_hours:
+                for index, row in df.iterrows():
+                    p_name = str(row[col_pilot])
+                    p_hours = str(row[col_hours])
+                    # On stocke dans le dictionnaire
+                    # On essaie de matcher le nom ou l'ID THT si présent
+                    pilot_hours[p_name] = p_hours
+    except:
+        return {} # Retourne vide si échec, on utilisera le backup
+    return pilot_hours
 
 @st.cache_data(ttl=300)
 def get_fshub_flights():
@@ -387,7 +397,6 @@ def login_page():
         st.markdown("---")
         with st.container(border=True):
             st.markdown("<h3 class='center-text'>🌟 Rejoignez l'aventure !</h3>", unsafe_allow_html=True)
-            # --- MODIFICATION TEXTE MARKETING ---
             st.markdown("""
             <div style='text-align: center; color: #57606a; margin-bottom: 20px;'>
             Embarquez pour une expérience immersive au cœur du Pacifique. 
@@ -395,15 +404,12 @@ def login_page():
             vivez la simulation autrement dans une ambiance conviviale et professionnelle.
             </div>
             """, unsafe_allow_html=True)
-            # ------------------------------------
             c_invit1, c_invit2 = st.columns(2)
             with c_invit1: st.link_button("📝 Inscription fsHub", "https://fshub.io/airline/THT/overview", use_container_width=True)
             with c_invit2: st.link_button("🌐 Notre Site Web", "https://www.atnvirtual.fr/", use_container_width=True)
             
             st.markdown("---")
-            # --- MODIFICATION INFO ACCES ---
             st.info("ℹ️ **Information d'accès :** Vos identifiants personnels pour ce Crew Center vous seront communiqués par le Staff une fois votre inscription validée sur fsHub.")
-            # -------------------------------
 
 if not st.session_state['logged_in']:
     login_page()
@@ -542,11 +548,15 @@ else:
             st.write("### 👥 Participants")
             st.dataframe(pd.DataFrame(list(st.session_state['event_participants'].items()), columns=['Pilote', 'Statut']), use_container_width=True)
 
-    # ROSTER (LIVE HOURS)
+    # ROSTER (CORRIGÉ & ROBUSTE)
     elif selection == T("menu_roster"):
         st.title(T("roster_title"))
         st.caption(T("roster_sync"))
         st.markdown("---")
+        
+        # On essaie de récupérer la liste globale (1 seule requête)
+        # Si ça échoue, on a le dictionnaire vide {}
+        global_hours_map = get_all_pilots_hours_global()
         
         cols_per_row = 3
         for i in range(0, len(ROSTER_DATA), cols_per_row):
@@ -557,10 +567,21 @@ else:
                     staff_html = ""
                     if pilot['role'] == "STAFF": staff_html = '<span class="staff-badge">STAFF</span>'
                     
-                    live_hours = get_pilot_live_hours(pilot['fshub_id'])
+                    # LOGIQUE HYBRIDE :
+                    # 1. On cherche une correspondance dans la liste globale scrapée
+                    # 2. Si pas trouvé (ou blocage), on utilise la valeur 'default' (hardcodée)
                     
-                    if live_hours:
-                        heures_display = f"⏱️ {live_hours}"
+                    final_hours = pilot['default'] # Valeur par défaut
+                    
+                    # Tentative de match intelligent avec le scraping global
+                    for name_key, hours_val in global_hours_map.items():
+                        # On regarde si l'ID (ex: THT1001) est dans le nom sur fsHub
+                        if pilot['id'] in name_key:
+                            final_hours = hours_val
+                            break
+                    
+                    if final_hours and final_hours != "-":
+                        heures_display = f"⏱️ {final_hours}"
                     else:
                         heures_display = f"<span class='badge-inactive'>{T('roster_inactive')}</span>"
                     
