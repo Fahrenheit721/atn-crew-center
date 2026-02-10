@@ -307,9 +307,6 @@ st.markdown("""
     .ev-meta { font-size: 13px; color: #64748b; display: flex; gap: 15px; align-items: center; }
     .ev-tag { background: #f1f5f9; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 11px; color: #475569; }
 
-    /* LEADERBOARD MEDALS */
-    .medal { font-size: 20px; margin-right: 8px; }
-
     .center-text { text-align: center; }
     </style>
     """, unsafe_allow_html=True)
@@ -351,8 +348,6 @@ def get_real_taf(icao_code):
         url = f"https://tgftp.nws.noaa.gov/data/forecasts/taf/stations/{icao_code}.TXT"
         response = requests.get(url, timeout=2)
         if response.status_code == 200:
-            lines = response.text.strip().split('\n')
-            # Le TAF a souvent une ligne d'entête (date), on prend tout
             return response.text
         return "⚠️ TAF indisponible"
     except: return "⚠️ Erreur connexion"
@@ -528,29 +523,23 @@ else:
             st.caption(metar_ntaa)
         st.write("")
         
-        # --- LEADERBOARD (NOUVEAU) ---
+        # --- LEADERBOARD ---
         st.subheader(T("leaderboard_title"))
         global_hours_map = get_all_pilots_hours_global()
         
-        # Préparation des données pour le tri
         ranking_data = []
         for pilot in ROSTER_DATA:
             h_str = pilot['default']
-            # On cherche si une valeur plus récente existe
             for name, h in global_hours_map.items():
                 if pilot['id'] in name:
                     h_str = h
                     break
-            
-            # Nettoyage pour convertir en nombre (enlever 'h', ',', ' ')
             try:
                 clean_h = float(h_str.lower().replace('h','').replace(',','').replace(' ',''))
             except:
                 clean_h = 0.0
-            
             ranking_data.append({"nom": pilot['nom'], "raw": h_str, "val": clean_h, "grade": pilot['grade']})
         
-        # Tri et Top 3
         ranking_data.sort(key=lambda x: x['val'], reverse=True)
         top3 = ranking_data[:3]
         
@@ -628,7 +617,7 @@ else:
             else: st.warning("Compte non lié à fsHub (ID manquant).")
         else: st.error("Profil introuvable.")
 
-    # BRIEFING ROOM (NOUVEAU)
+    # BRIEFING ROOM
     elif selection == T("menu_briefing"):
         st.title(T("briefing_title"))
         st.info(T("briefing_desc"))
@@ -643,28 +632,18 @@ else:
                 if dep_b and arr_b:
                     st.markdown("---")
                     col_met1, col_met2 = st.columns(2)
-                    
                     with col_met1:
                         st.subheader(f"🛫 {dep_b}")
                         st.markdown(f"**METAR:** `{get_real_metar(dep_b)}`")
                         st.markdown(f"**TAF:** `{get_real_taf(dep_b)}`")
-                    
                     with col_met2:
                         st.subheader(f"🛬 {arr_b}")
                         st.markdown(f"**METAR:** `{get_real_metar(arr_b)}`")
                         st.markdown(f"**TAF:** `{get_real_taf(arr_b)}`")
-                    
-                    # Lien SimBrief
                     if ac_b:
                         simbrief_url = f"https://dispatch.simbrief.com/options/new?type={ac_b}&orig={dep_b}&dest={arr_b}"
                         st.markdown("---")
-                        st.markdown(f"""
-                        <a href="{simbrief_url}" target="_blank">
-                            <button style="width:100%; background-color:#d32f2f; color:white; padding:15px; border-radius:8px; border:none; font-weight:bold; cursor:pointer;">
-                                {T("briefing_simbrief")}
-                            </button>
-                        </a>
-                        """, unsafe_allow_html=True)
+                        st.markdown(f"""<a href="{simbrief_url}" target="_blank"><button style="width:100%; background-color:#d32f2f; color:white; padding:15px; border-radius:8px; border:none; font-weight:bold; cursor:pointer;">{T("briefing_simbrief")}</button></a>""", unsafe_allow_html=True)
                 else:
                     st.error("Veuillez entrer au moins un aéroport de départ et d'arrivée.")
 
