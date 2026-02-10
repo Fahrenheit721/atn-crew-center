@@ -408,30 +408,22 @@ def get_va_stats_surgical():
     url = "https://fshub.io/airline/THT/overview"
     # VALEURS PAR DEFAUT FORCEES (Tes chiffres)
     stats = {"flights": "835", "hours": "1,828"} 
-    
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
         r = requests.get(url, headers=headers, timeout=5)
         if r.status_code == 200:
-            # Recherche Regex précise dans le HTML brut
-            # Flights
             match_flt = re.search(r'([\d,]+)\s*<[^>]*>\s*Total Flights', r.text, re.IGNORECASE | re.DOTALL)
-            if match_flt:
-                stats["flights"] = match_flt.group(1)
+            if match_flt: stats["flights"] = match_flt.group(1)
             else:
                 match_flt2 = re.search(r'>([\d,]+)<.*Total Flights', r.text, re.IGNORECASE | re.DOTALL)
                 if match_flt2: stats["flights"] = match_flt2.group(1)
 
-            # Hours
             match_hrs = re.search(r'([\d,.]+)\s*<[^>]*>\s*Total Hours', r.text, re.IGNORECASE | re.DOTALL)
-            if match_hrs:
-                stats["hours"] = match_hrs.group(1)
+            if match_hrs: stats["hours"] = match_hrs.group(1)
             else:
                 match_hrs2 = re.search(r'>([\d,.]+)<.*Total Hours', r.text, re.IGNORECASE | re.DOTALL)
                 if match_hrs2: stats["hours"] = match_hrs2.group(1)
-    except:
-        pass # Si erreur, on garde les valeurs par défaut
-        
+    except: pass
     return stats
 
 @st.cache_data(ttl=300)
@@ -557,7 +549,7 @@ else:
         c1.metric(T("stats_pilots"), str(len(ROSTER_DATA)), "Actifs")
         c2.metric(T("stats_hours"), f"{va_stats['hours']} h", "Total")
         c3.metric(T("stats_flights"), va_stats['flights'], "Total") 
-        c4.metric(T("stats_landing"), "-289 fpm", "Moyen") # Valeur moyenne fixée pour cohérence
+        c4.metric(T("stats_landing"), "-289 fpm", "Moyen")
         st.markdown("---")
         
         st.subheader(T("leaderboard_title"))
@@ -750,7 +742,7 @@ else:
                     if not st.checkbox(item, key=f"chk_{phase}_{i}"): completed = False
                 if completed: st.success(T("checklist_complete"))
 
-    # VALIDATION TOURS (RESTAURÉ VRAIE VERSION)
+    # VALIDATION TOURS (RESTAURÉ VRAIE VERSION V58)
     elif selection == T("menu_tours"):
         st.title("🏆 Validation d'Étape de Tour")
         st.info("Utilisez ce formulaire uniquement pour valider une étape de tour pilote.")
@@ -779,24 +771,36 @@ else:
                 if res is True: st.success(T("email_success"))
                 else: st.error(T("email_error") + str(res))
 
+    # PIREP (RESTAURÉ COMPLET V42)
     elif selection == T("menu_pirep"):
         st.title(T("pirep_title"))
         with st.expander(T("pirep_intro"), expanded=True):
             st.info(T("pirep_warn"))
-            c1, c2, c3 = st.columns([2,2,1])
-            nb = c1.text_input(T("form_flight_nb"), placeholder="TN08")
-            ac = c2.selectbox(T("form_aircraft"), ["B789", "A359", "A320", "AT76", "DH8D", "B350", "C172"])
-            ldg = c3.number_input(T("form_landing"), value=-200, step=10)
-            c4, c5 = st.columns(2)
-            dep = c4.text_input(T("form_dep"), max_chars=4).upper()
-            arr = c5.text_input(T("form_arr"), max_chars=4).upper()
-            rmk = st.text_area(T("form_msg"))
+            c_fp_1, c_fp_2, c_fp_rate = st.columns([2, 2, 1])
+            p_flight_nb = c_fp_1.text_input(T("form_flight_nb"), placeholder="ex: TN08")
+            p_aircraft = c_fp_2.selectbox(T("form_aircraft"), ["B789", "A359", "A320", "AT76", "DH8D", "B350", "C172"])
+            p_landing = c_fp_rate.number_input(T("form_landing"), value=-200, step=10)
+            c_fp_3, c_fp_4 = st.columns(2)
+            p_dep = c_fp_3.text_input(T("form_dep"), max_chars=4, placeholder="NTAA").upper()
+            p_arr = c_fp_4.text_input(T("form_arr"), max_chars=4, placeholder="KLAX").upper()
+            st.markdown("---")
+            c_fp_5, c_fp_6 = st.columns(2)
+            p_date_dep = c_fp_5.date_input(T("form_date_dep"))
+            p_time_dep = c_fp_6.text_input(T("form_time_dep"), placeholder="HH:MM")
+            c_fp_7, c_fp_8 = st.columns(2)
+            p_date_arr = c_fp_7.date_input(T("form_date_arr"))
+            p_time_arr = c_fp_8.text_input(T("form_time_arr"), placeholder="HH:MM")
+            st.markdown("---")
+            p_remark = st.text_area(T("form_msg") + " (Optionnel)")
+            
             if st.button(T("pirep_send"), type="primary"):
-                sub = f"[PIREP] {nb} : {dep}-{arr}"
-                body = f"PILOTE: {st.session_state['username']}\nVOL: {nb}\nAVION: {ac}\nDEPART: {dep}\nARRIVEE: {arr}\nLANDING: {ldg}\nREMARQUES: {rmk}"
-                res = send_email_via_ionos(sub, body)
-                if res is True: st.success(T("email_success"))
-                else: st.error(T("email_error") + str(res))
+                subject = f"[PIREP] {p_flight_nb} : {p_dep}-{p_arr}"
+                body = f"PILOTE: {st.session_state['username']}\nVOL: {p_flight_nb}\nAVION: {p_aircraft}\nDEPART: {p_dep} le {p_date_dep} à {p_time_dep}z\nARRIVEE: {p_arr} le {p_date_arr} à {p_time_arr}z\nLANDING: {p_landing} fpm\nREMARQUES: {p_remark}"
+                try:
+                    res = send_email_via_ionos(subject, body)
+                    if res is True: st.success(T("email_success"))
+                    else: st.error(T("email_error") + str(res))
+                except Exception as e: st.error(str(e))
 
     elif selection == T("menu_metar"):
         st.title(T("metar_title"))
@@ -817,20 +821,27 @@ else:
                     st.code(raw, language="text")
                 else: st.error(raw)
 
+    # CONTACT (CORRIGÉ BUG VARIABLE + DESIGN V46)
     elif selection == T("menu_contact"):
         st.title(T("contact_title"))
-        c1, c2 = st.columns([1, 2])
-        with c1:
+        c_contact_1, c_contact_2 = st.columns([1, 2])
+        with c_contact_1:
             try: st.image(LOGO_URL, width=150)
             except: pass
             st.write("### ATN-Virtual Staff")
-        with c2:
+            st.info(T("contact_desc"))
+            st.caption("Réponse sous 24/48h")
+        with c_contact_2:
             with st.container(border=True):
-                sujet = st.text_input(T("form_subject"))
-                msg = st.text_area(T("form_msg"))
+                st.write("#### 📩 Formulaire")
+                st.text_input("De (Expéditeur)", value=st.session_state['username'], disabled=True)
+                sujet_contact = st.text_input(T("form_subject"), placeholder="ex: Problème PIREP...")
+                message_contact = st.text_area(T("form_msg"), height=150)
+                
                 if st.button(T("contact_send"), type="primary"):
-                    sub = f"[Contact] {sujet}"
-                    body = f"De: {st.session_state['username']}\n\n{msg}"
-                    res = send_email_via_ionos(sub, body)
+                    # Utilisation de la bonne variable 'sujet_contact'
+                    final_subject = f"[Crew Center] {sujet_contact}" if sujet_contact else "[Crew Center] Nouvelle demande"
+                    body = f"De: {st.session_state['username']}\n\n{message_contact}"
+                    res = send_email_via_ionos(final_subject, body)
                     if res is True: st.success(T("email_success"))
                     else: st.error(T("email_error") + str(res))
