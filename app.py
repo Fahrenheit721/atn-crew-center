@@ -384,39 +384,47 @@ def get_all_pilots_hours_global():
     except: return {}
     return pilot_hours
 
-# --- NOUVEAU : SCRAPER LES STATS GLOBALES ---
+# --- NOUVEAU SYSTEME DE CALCUL "PAR SOMME" (FIABLE) ---
 @st.cache_data(ttl=300)
-def get_va_global_stats_from_web():
-    url = "https://fshub.io/airline/THT/overview"
-    headers = {'User-Agent': 'Mozilla/5.0'}
-    stats = {"flights": "N/A", "hours": "N/A"}
+def calculate_va_stats_from_pilots():
+    url = "https://fshub.io/airline/THT/pilots"
+    stats = {"flights": 0, "hours": 0}
     try:
-        import lxml
+        headers = {'User-Agent': 'Mozilla/5.0'}
         dfs = pd.read_html(url, storage_options=headers)
-        # On cherche le tableau des stats (All-time / Last 30 days)
         for df in dfs:
-            # On convertit en string pour chercher des mots clés
-            txt = str(df.to_dict())
-            if "All-time" in txt or "Total Flights" in txt:
-                # C'est probablement le bon tableau.
-                # Structure souvent : Col1=Metric, Col2=All-time, Col3=Last 30...
-                # On essaie de trouver la ligne "Total Flights" et la colonne "All-time"
-                # Mais les noms de colonnes peuvent varier.
-                # On va assumer que la colonne 1 (index 1) est All-time si la colonne 0 est les labels.
+            # On cherche les colonnes Flights et Hours
+            cols_str = [str(c).lower() for c in df.columns]
+            if any("flight" in c for c in cols_str) and any("hour" in c for c in cols_str):
+                # On a trouvé la table des pilotes
+                # Identifier les index des colonnes
+                col_flt_idx = next(i for i, c in enumerate(cols_str) if "flight" in c)
+                col_hrs_idx = next(i for i, c in enumerate(cols_str) if "hour" in c)
                 
-                # Nettoyage
-                df.columns = [str(c).strip() for c in df.columns]
+                # Somme des vols
+                total_flights = 0
+                for val in df.iloc[:, col_flt_idx]:
+                    try:
+                        total_flights += int(str(val).replace(',', ''))
+                    except: pass
                 
-                # Recherche ligne Total Flights
-                row_flt = df[df.iloc[:,0].str.contains("Total Flights", na=False)]
-                if not row_flt.empty:
-                    stats["flights"] = str(row_flt.iloc[0, 1]) # Colonne 1 = All-time
+                # Somme des heures
+                total_hours = 0.0
+                for val in df.iloc[:, col_hrs_idx]:
+                    try:
+                        # Format "123h 45m" ou "123"
+                        clean = str(val).lower().replace(',', '')
+                        h = 0
+                        if 'h' in clean:
+                            parts = clean.split('h')
+                            h = float(parts[0])
+                        else:
+                            h = float(clean)
+                        total_hours += h
+                    except: pass
                 
-                # Recherche ligne Total Hours
-                row_hrs = df[df.iloc[:,0].str.contains("Total Hours", na=False)]
-                if not row_hrs.empty:
-                    stats["hours"] = str(row_hrs.iloc[0, 1])
-                
+                stats["flights"] = total_flights
+                stats["hours"] = int(total_hours)
                 return stats
     except: pass
     return stats
@@ -562,12 +570,12 @@ else:
         
         # --- RECUPERATION DONNEES REELLES ---
         global_hours_map = get_all_pilots_hours_global() # Heures indiv
-        va_stats = get_va_global_stats_from_web() # Stats VA (Vols/Heures total)
+        va_stats = calculate_va_stats_from_pilots() # Stats VA (Somme)
         
         # --- STATS GLOBALES (ORDRE 1) ---
         c1,c2,c3,c4 = st.columns(4)
         c1.metric(T("stats_pilots"), str(len(ROSTER_DATA)), "Actifs")
-        c2.metric(T("stats_hours"), va_stats['hours'], "Total")
+        c2.metric(T("stats_hours"), f"{va_stats['hours']} h", "Total")
         c3.metric(T("stats_flights"), va_stats['flights'], "Total") 
         c4.metric(T("stats_landing"), "-182 fpm", "Moyen")
         
