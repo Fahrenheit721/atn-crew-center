@@ -61,13 +61,13 @@ TRANS = {
         "roster_title": "L'Équipe ATN-Virtual",
         "roster_inactive": "⛔ INACTIF",
         "roster_sync": "Données synchronisées avec fsHub",
-        "briefing_title": "Préparation du Vol",
+        "briefing_title": "Flight Dispatch Center",
         "briefing_desc": "Préparez votre rotation : Météo, Prévisions et Plan de vol.",
-        "briefing_dep": "Aéroport de Départ",
-        "briefing_arr": "Aéroport d'Arrivée",
-        "briefing_ac": "Type d'Appareil",
-        "briefing_btn": "Générer le Briefing",
-        "briefing_simbrief": "🚀 Ouvrir dans SimBrief",
+        "briefing_dep": "🛫 Départ (OACI)",
+        "briefing_arr": "🛬 Arrivée (OACI)",
+        "briefing_ac": "✈️ Appareil",
+        "briefing_btn": "📡 ANALYSER LA ROUTE",
+        "briefing_simbrief": "🚀 GÉNÉRER OFP (SimBrief)",
         "pirep_title": "Soumettre un rapport manuel (PIREP)",
         "pirep_intro": "Formulaire de secours",
         "pirep_warn": "Ce formulaire est réservé aux pilotes rencontrant des difficultés techniques avec le logiciel de suivi (LRM). L'utilisation du client automatique est recommandée pour la précision des données.",
@@ -131,13 +131,13 @@ TRANS = {
         "roster_title": "ATN-Virtual Team",
         "roster_inactive": "⛔ INACTIVE",
         "roster_sync": "Data synced with fsHub",
-        "briefing_title": "Flight Preparation",
+        "briefing_title": "Flight Dispatch Center",
         "briefing_desc": "Prepare your rotation: Weather, Forecasts, and Flight Plan.",
-        "briefing_dep": "Departure Airport",
-        "briefing_arr": "Arrival Airport",
-        "briefing_ac": "Aircraft Type",
-        "briefing_btn": "Generate Briefing",
-        "briefing_simbrief": "🚀 Open in SimBrief",
+        "briefing_dep": "🛫 Departure (ICAO)",
+        "briefing_arr": "🛬 Arrival (ICAO)",
+        "briefing_ac": "✈️ Aircraft",
+        "briefing_btn": "📡 ANALYZE ROUTE",
+        "briefing_simbrief": "🚀 GENERATE OFP (SimBrief)",
         "pirep_title": "Submit Manual PIREP",
         "pirep_intro": "Backup Form",
         "pirep_warn": "This form is intended for pilots experiencing technical issues with the tracking client (LRM). Please use the automated client whenever possible for data accuracy.",
@@ -285,8 +285,11 @@ st.markdown("""
     div[data-testid="stMetric"] div[data-testid="stMetricDelta"] { color: #e0e0e0 !important; }
     .metar-box { background-color: #e3f2fd; border-left: 5px solid rgb(0, 157, 255); padding: 15px; font-family: monospace; color: black; }
     .stButton button { width: 100%; }
+    
     .login-logo-container { display: flex; justify-content: center; width: 100%; margin-bottom: 20px; }
     .login-logo { width: 150px; height: auto; }
+
+    /* STYLE ROSTER */
     .pilot-card { background-color: white; border: 1px solid #e0e0e0; border-top: 4px solid rgb(0, 157, 255); border-radius: 12px; padding: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s; min-height: 140px; display: flex; align-items: center; gap: 15px; }
     .pilot-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
     .pilot-img { width: 64px; height: 64px; border-radius: 50%; border: 3px solid #e3f2fd; object-fit: cover; }
@@ -296,7 +299,10 @@ st.markdown("""
     .pilot-rank { background-color: #e3f2fd; color: #007bff; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
     .staff-badge { background-color: #d32f2f; color: white; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
     .pilot-info { font-size: 12px; color: #7f8c8d; margin-top: 2px; display: flex; align-items: center; gap: 5px; }
+    
     .badge-inactive { background-color: #95a5a6; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+
+    /* STYLE FLIGHT CARD */
     .flight-card { background-color: white; border-radius: 12px; padding: 16px 24px; margin-bottom: 16px; border-left: 6px solid #009dff; box-shadow: 0 2px 6px rgba(0,0,0,0.06); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease; }
     .flight-card:hover { transform: translateX(2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
     .fc-left { display: flex; flex-direction: column; gap: 4px; }
@@ -309,6 +315,8 @@ st.markdown("""
     .landing-good { color: #16a34a; border-color: #bbf7d0; background-color: #f0fdf4; }
     .landing-hard { color: #dc2626; border-color: #fecaca; background-color: #fef2f2; }
     .fc-date { font-size: 11px; color: #94a3b8; font-weight: 500; }
+    
+    /* STYLE EVENT CARD */
     .event-card { background-color: white; border-radius: 12px; padding: 0; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; overflow: hidden; border: 1px solid #f1f5f9; }
     .ev-date-box { background-color: #009dff; color: white; width: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; }
     .ev-day { font-size: 24px; font-weight: 800; line-height: 1; }
@@ -317,6 +325,7 @@ st.markdown("""
     .ev-title { font-size: 18px; font-weight: 800; color: #2c3e50; margin-bottom: 6px; }
     .ev-meta { font-size: 13px; color: #64748b; display: flex; gap: 15px; align-items: center; }
     .ev-tag { background: #f1f5f9; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 11px; color: #475569; }
+
     .center-text { text-align: center; }
     </style>
     """, unsafe_allow_html=True)
@@ -337,7 +346,7 @@ ROSTER_DATA = [
     {"id": "THT1006", "nom": "Mattias G.", "grade": "CDB", "role": "STAFF", "fshub_id": "28103", "default": "74h"},
     {"id": "THT1007", "nom": "Jordan M.", "grade": "EP", "role": "Pilote", "fshub_id": "19702", "default": "111h"},
     {"id": "THT1008", "nom": "Mathieu G.", "grade": "EP", "role": "Pilote", "fshub_id": "1360", "default": "96h"},
-    {"id": "THT1009", "nom": "Daniel V.", "grade": "EP", "role": "Pilote", "fshub_id": "28217", "default": "0h"},
+    {"id": "THT1009", "nom": "Daniel V.", "grade": "EP", "role": "Pilote", "fshub_id": "28217", "default": "0h"}, 
     {"id": "THT1010", "nom": "Kévin", "grade": "EP", "role": "Pilote", "fshub_id": "28382", "default": "5h"}
 ]
 LISTE_TOURS = ["Tiare IFR Tour", "World ATN Tour IFR", "Tamure Tour VFR", "Taura'a VFR Tour"]
@@ -410,7 +419,6 @@ def get_va_stats_surgical():
             if match_flt:
                 stats["flights"] = match_flt.group(1)
             else:
-                # 2ème essai pattern
                 match_flt2 = re.search(r'>([\d,]+)<.*Total Flights', r.text, re.IGNORECASE | re.DOTALL)
                 if match_flt2: stats["flights"] = match_flt2.group(1)
 
@@ -623,28 +631,75 @@ else:
     elif selection == T("menu_briefing"):
         st.title(T("briefing_title"))
         st.info(T("briefing_desc"))
+        
+        # --- MISE EN PAGE BEAU TABLEAU DE BORD ---
+        st.markdown("### 🗺️ Plan de Vol")
         with st.container(border=True):
+            # Ligne 1 : Inputs
             c1, c2, c3 = st.columns(3)
-            dep = c1.text_input(T("briefing_dep"), max_chars=4, placeholder="NTAA").upper()
-            arr = c2.text_input(T("briefing_arr"), max_chars=4, placeholder="NTTB").upper()
-            ac = c3.text_input(T("briefing_ac"), placeholder="A320")
-            if st.button(T("briefing_btn"), type="primary"):
+            with c1: dep = st.text_input(T("briefing_dep"), max_chars=4, placeholder="NTAA").upper()
+            with c2: arr = st.text_input(T("briefing_arr"), max_chars=4, placeholder="NTTB").upper()
+            with c3: ac = st.text_input(T("briefing_ac"), placeholder="A320")
+            
+            st.write("") # Espacement
+            if st.button(T("briefing_btn"), type="primary", use_container_width=True):
                 if dep and arr:
                     st.markdown("---")
-                    c_met1, c_met2 = st.columns(2)
-                    with c_met1:
-                        st.subheader(f"🛫 {dep}")
-                        st.markdown(f"**METAR:** `{get_real_metar(dep)}`")
-                        st.markdown(f"**TAF:** `{get_real_taf(dep)}`")
-                    with c_met2:
-                        st.subheader(f"🛬 {arr}")
-                        st.markdown(f"**METAR:** `{get_real_metar(arr)}`")
-                        st.markdown(f"**TAF:** `{get_real_taf(arr)}`")
+                    st.success(f"✅ Route analysée : **{dep}** ➡️ **{arr}**")
+                    
+                    col_met1, col_met2 = st.columns(2)
+                    
+                    # DEPART
+                    with col_met1:
+                        with st.container(border=True):
+                            st.subheader(f"🛫 {dep}")
+                            raw_met = get_real_metar(dep)
+                            data_met = extract_metar_data(raw_met)
+                            
+                            # Indicateurs visuels
+                            m1, m2, m3 = st.columns(3)
+                            m1.metric("💨 Vent", data_met["Wind"])
+                            m2.metric("🌡️ Temp", data_met["Temp"])
+                            m3.metric("⏱️ QNH", data_met["QNH"])
+                            
+                            with st.expander("📄 Voir Bulletin Brut (METAR/TAF)"):
+                                st.code(raw_met, language="text")
+                                st.caption("Prévisions (TAF) :")
+                                st.code(get_real_taf(dep), language="text")
+
+                    # ARRIVEE
+                    with col_met2:
+                        with st.container(border=True):
+                            st.subheader(f"🛬 {arr}")
+                            raw_met_arr = get_real_metar(arr)
+                            data_met_arr = extract_metar_data(raw_met_arr)
+                            
+                            # Indicateurs visuels
+                            m1, m2, m3 = st.columns(3)
+                            m1.metric("💨 Vent", data_met_arr["Wind"])
+                            m2.metric("🌡️ Temp", data_met_arr["Temp"])
+                            m3.metric("⏱️ QNH", data_met_arr["QNH"])
+                            
+                            with st.expander("📄 Voir Bulletin Brut (METAR/TAF)"):
+                                st.code(raw_met_arr, language="text")
+                                st.caption("Prévisions (TAF) :")
+                                st.code(get_real_taf(arr), language="text")
+                    
+                    # BOUTON SIMBRIEF
                     if ac:
-                        url = f"https://dispatch.simbrief.com/options/new?type={ac}&orig={dep}&dest={arr}"
+                        simbrief_url = f"https://dispatch.simbrief.com/options/new?type={ac}&orig={dep}&dest={arr}"
                         st.markdown("---")
-                        st.markdown(f"""<a href="{url}" target="_blank"><button style="width:100%; background-color:#d32f2f; color:white; padding:15px; border-radius:8px; border:none; font-weight:bold; cursor:pointer;">{T("briefing_simbrief")}</button></a>""", unsafe_allow_html=True)
-                else: st.error("Aéroports requis.")
+                        st.markdown(f"""
+                        <div style="text-align: center;">
+                            <a href="{simbrief_url}" target="_blank" style="text-decoration: none;">
+                                <button style="background-color: #d32f2f; color: white; padding: 15px 30px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+                                    {T("briefing_simbrief")}
+                                </button>
+                            </a>
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.error("Veuillez entrer au moins un aéroport de départ et d'arrivée.")
 
     elif selection == T("menu_events"):
         st.title(T("event_title"))
@@ -695,13 +750,42 @@ else:
                     if not st.checkbox(item, key=f"chk_{phase}_{i}"): completed = False
                 if completed: st.success(T("checklist_complete"))
 
+    # VALIDATION TOURS (RESTAURÉ VRAIE VERSION)
+    elif selection == T("menu_tours"):
+        st.title("🏆 Validation d'Étape de Tour")
+        st.info("Utilisez ce formulaire uniquement pour valider une étape de tour pilote.")
+        with st.container(border=True):
+            col_main1, col_main2 = st.columns(2)
+            with col_main1:
+                st.write("### 📍 Informations Tour")
+                selected_tour = st.selectbox("Sélectionner le Tour concerné", LISTE_TOURS)
+                leg_number = st.number_input("Numéro de l'étape", min_value=1, max_value=12, value=1, step=1)
+                st.write("### ✈️ Informations Vol")
+                callsign = st.text_input("Callsign", value=st.session_state['username'], disabled=True)
+                aircraft = st.text_input("Appareil utilisé", placeholder="ex: B789")
+            with col_main2:
+                st.write("### 🕰️ Horaires (ZULU)")
+                c1, c2 = st.columns(2)
+                dep_icao = c1.text_input("Départ (ICAO)", max_chars=4).upper()
+                arr_icao = c2.text_input("Arrivée (ICAO)", max_chars=4).upper()
+                date_flight = st.date_input("Date du vol")
+                flight_time = st.text_input("Temps de vol (Block)", placeholder="ex: 01:45")
+            comment = st.text_area("Lien du rapport fsHub (Optionnel) ou Remarques")
+            
+            if st.button("✅ ENVOYER LA VALIDATION (Direct)", type="primary"):
+                subject = f"VALIDATION TOUR - {selected_tour} - Etape {leg_number} - {st.session_state['username']}"
+                body = f"PILOTE: {st.session_state['username']}\nTOUR: {selected_tour}\nETAPE: {leg_number}\nAVION: {aircraft}\nDEPART: {dep_icao}\nARRIVEE: {arr_icao}\nDATE: {date_flight}\nTEMPS: {flight_time}\nREMARQUES: {comment}"
+                res = send_email_via_ionos(subject, body)
+                if res is True: st.success(T("email_success"))
+                else: st.error(T("email_error") + str(res))
+
     elif selection == T("menu_pirep"):
         st.title(T("pirep_title"))
         with st.expander(T("pirep_intro"), expanded=True):
             st.info(T("pirep_warn"))
             c1, c2, c3 = st.columns([2,2,1])
             nb = c1.text_input(T("form_flight_nb"), placeholder="TN08")
-            ac = c2.selectbox(T("form_aircraft"), ["B789", "A359", "A320", "AT76", "DH8D", "C172"])
+            ac = c2.selectbox(T("form_aircraft"), ["B789", "A359", "A320", "AT76", "DH8D", "B350", "C172"])
             ldg = c3.number_input(T("form_landing"), value=-200, step=10)
             c4, c5 = st.columns(2)
             dep = c4.text_input(T("form_dep"), max_chars=4).upper()
@@ -732,20 +816,6 @@ else:
                     m3.metric("QNH", data["QNH"])
                     st.code(raw, language="text")
                 else: st.error(raw)
-
-    elif selection == T("menu_tours"):
-        st.title("🏆 Validation Tours")
-        with st.container(border=True):
-            c1, c2 = st.columns(2)
-            tour = c1.selectbox("Tour", LISTE_TOURS)
-            leg = c2.number_input("Etape", 1, 20, 1)
-            rmk = st.text_area("Preuve / Remarques")
-            if st.button("✅ ENVOYER", type="primary"):
-                sub = f"TOUR - {tour} - Leg {leg} - {st.session_state['username']}"
-                body = f"PILOTE: {st.session_state['username']}\nTOUR: {tour}\nETAPE: {leg}\nPREUVE: {rmk}"
-                res = send_email_via_ionos(sub, body)
-                if res is True: st.success(T("email_success"))
-                else: st.error(T("email_error") + str(res))
 
     elif selection == T("menu_contact"):
         st.title(T("contact_title"))
