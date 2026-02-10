@@ -327,7 +327,7 @@ ROSTER_DATA = [
     {"id": "THT1006", "nom": "Mattias G.", "grade": "CDB", "role": "STAFF", "fshub_id": "28103", "default": "74h"},
     {"id": "THT1007", "nom": "Jordan M.", "grade": "EP", "role": "Pilote", "fshub_id": "19702", "default": "111h"},
     {"id": "THT1008", "nom": "Mathieu G.", "grade": "EP", "role": "Pilote", "fshub_id": "1360", "default": "96h"},
-    {"id": "THT1009", "nom": "Daniel V.", "grade": "EP", "role": "Pilote", "fshub_id": "28217", "default": "598h"},
+    {"id": "THT1009", "nom": "Daniel V.", "grade": "EP", "role": "Pilote", "fshub_id": "28217", "default": "0h"}, # CORRECTION : Mis à 0h
     {"id": "THT1010", "nom": "Kévin", "grade": "EP", "role": "Pilote", "fshub_id": "28382", "default": "5h"}
 ]
 LISTE_TOURS = ["Tiare IFR Tour", "World ATN Tour IFR", "Tamure Tour VFR", "Taura'a VFR Tour"]
@@ -383,6 +383,43 @@ def get_all_pilots_hours_global():
                     pilot_hours[p_name] = p_hours
     except: return {}
     return pilot_hours
+
+# --- NOUVEAU : SCRAPER LES STATS GLOBALES ---
+@st.cache_data(ttl=300)
+def get_va_global_stats_from_web():
+    url = "https://fshub.io/airline/THT/overview"
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    stats = {"flights": "N/A", "hours": "N/A"}
+    try:
+        import lxml
+        dfs = pd.read_html(url, storage_options=headers)
+        # On cherche le tableau des stats (All-time / Last 30 days)
+        for df in dfs:
+            # On convertit en string pour chercher des mots clés
+            txt = str(df.to_dict())
+            if "All-time" in txt or "Total Flights" in txt:
+                # C'est probablement le bon tableau.
+                # Structure souvent : Col1=Metric, Col2=All-time, Col3=Last 30...
+                # On essaie de trouver la ligne "Total Flights" et la colonne "All-time"
+                # Mais les noms de colonnes peuvent varier.
+                # On va assumer que la colonne 1 (index 1) est All-time si la colonne 0 est les labels.
+                
+                # Nettoyage
+                df.columns = [str(c).strip() for c in df.columns]
+                
+                # Recherche ligne Total Flights
+                row_flt = df[df.iloc[:,0].str.contains("Total Flights", na=False)]
+                if not row_flt.empty:
+                    stats["flights"] = str(row_flt.iloc[0, 1]) # Colonne 1 = All-time
+                
+                # Recherche ligne Total Hours
+                row_hrs = df[df.iloc[:,0].str.contains("Total Hours", na=False)]
+                if not row_hrs.empty:
+                    stats["hours"] = str(row_hrs.iloc[0, 1])
+                
+                return stats
+    except: pass
+    return stats
 
 @st.cache_data(ttl=300)
 def get_fshub_flights():
@@ -523,9 +560,21 @@ else:
             st.caption(metar_ntaa)
         st.write("")
         
-        # --- LEADERBOARD ---
+        # --- RECUPERATION DONNEES REELLES ---
+        global_hours_map = get_all_pilots_hours_global() # Heures indiv
+        va_stats = get_va_global_stats_from_web() # Stats VA (Vols/Heures total)
+        
+        # --- STATS GLOBALES (ORDRE 1) ---
+        c1,c2,c3,c4 = st.columns(4)
+        c1.metric(T("stats_pilots"), str(len(ROSTER_DATA)), "Actifs")
+        c2.metric(T("stats_hours"), va_stats['hours'], "Total")
+        c3.metric(T("stats_flights"), va_stats['flights'], "Total") 
+        c4.metric(T("stats_landing"), "-182 fpm", "Moyen")
+        
+        st.markdown("---")
+        
+        # --- LEADERBOARD (ORDRE 2) ---
         st.subheader(T("leaderboard_title"))
-        global_hours_map = get_all_pilots_hours_global()
         
         ranking_data = []
         for pilot in ROSTER_DATA:
@@ -538,6 +587,7 @@ else:
                 clean_h = float(h_str.lower().replace('h','').replace(',','').replace(' ',''))
             except:
                 clean_h = 0.0
+            
             ranking_data.append({"nom": pilot['nom'], "raw": h_str, "val": clean_h, "grade": pilot['grade']})
         
         ranking_data.sort(key=lambda x: x['val'], reverse=True)
@@ -556,14 +606,6 @@ else:
                 </div>
                 """, unsafe_allow_html=True)
         
-        st.markdown("---")
-        
-        # --- STATS GLOBALES ---
-        c1,c2,c3,c4 = st.columns(4)
-        c1.metric(T("stats_pilots"), str(len(ROSTER_DATA)), "Actifs")
-        c2.metric(T("stats_hours"), "N/A", "+")
-        c3.metric(T("stats_flights"), "N/A", "▲")
-        c4.metric(T("stats_landing"), "-182 fpm", "Moyen")
         st.markdown("---")
         
         # --- VOLS RECENTS ---
