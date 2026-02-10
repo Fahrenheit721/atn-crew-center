@@ -21,6 +21,7 @@ TRANS = {
     "FR": {
         "menu_home": "🏠 Accueil",
         "menu_profile": "👤 Mon Espace",
+        "menu_briefing": "✈️ Briefing Room",
         "menu_events": "📅 Événements",
         "menu_roster": "👨‍✈️ Roster Pilotes",
         "menu_radar": "🌍 Radar Live",
@@ -34,12 +35,20 @@ TRANS = {
         "stats_hours": "Heures Totales",
         "stats_flights": "Vols Effectués",
         "stats_landing": "Landing Moyen",
-        "recent_flights": "✈️ Vols Récents",
+        "leaderboard_title": "🏆 Top 3 - Heures de Vol",
+        "recent_flights": "✈️ Vols Récents (Global)",
         "demo_mode": "ℹ️ Mode Démo (Données simulées)",
         "event_title": "Prochains événements",
         "roster_title": "L'Équipe ATN-Virtual",
         "roster_inactive": "⛔ INACTIF",
         "roster_sync": "Données synchronisées avec fsHub",
+        "briefing_title": "Préparation du Vol",
+        "briefing_desc": "Préparez votre rotation : Météo, Prévisions et Plan de vol.",
+        "briefing_dep": "Aéroport de Départ",
+        "briefing_arr": "Aéroport d'Arrivée",
+        "briefing_ac": "Type d'Appareil",
+        "briefing_btn": "Générer le Briefing",
+        "briefing_simbrief": "🚀 Ouvrir dans SimBrief",
         "pirep_title": "Soumettre un rapport manuel (PIREP)",
         "pirep_intro": "Formulaire de secours",
         "pirep_warn": "Ce formulaire est réservé aux pilotes rencontrant des difficultés techniques avec le logiciel de suivi (LRM). L'utilisation du client automatique est recommandée pour la précision des données.",
@@ -82,6 +91,7 @@ TRANS = {
     "EN": {
         "menu_home": "🏠 Home",
         "menu_profile": "👤 My Profile",
+        "menu_briefing": "✈️ Briefing Room",
         "menu_events": "📅 Events",
         "menu_roster": "👨‍✈️ Pilot Roster",
         "menu_radar": "🌍 Live Radar",
@@ -95,12 +105,20 @@ TRANS = {
         "stats_hours": "Total Hours",
         "stats_flights": "Flights Flown",
         "stats_landing": "Avg Landing",
-        "recent_flights": "✈️ Recent Flights",
+        "leaderboard_title": "🏆 Top 3 - Flight Hours",
+        "recent_flights": "✈️ Recent Flights (Global)",
         "demo_mode": "ℹ️ Demo Mode (Simulated Data)",
         "event_title": "Upcoming Events",
         "roster_title": "ATN-Virtual Team",
         "roster_inactive": "⛔ INACTIVE",
         "roster_sync": "Data synced with fsHub",
+        "briefing_title": "Flight Preparation",
+        "briefing_desc": "Prepare your rotation: Weather, Forecasts, and Flight Plan.",
+        "briefing_dep": "Departure Airport",
+        "briefing_arr": "Arrival Airport",
+        "briefing_ac": "Aircraft Type",
+        "briefing_btn": "Generate Briefing",
+        "briefing_simbrief": "🚀 Open in SimBrief",
         "pirep_title": "Submit Manual PIREP",
         "pirep_intro": "Backup Form",
         "pirep_warn": "This form is intended for pilots experiencing technical issues with the tracking client (LRM). Please use the automated client whenever possible for data accuracy.",
@@ -143,6 +161,7 @@ TRANS = {
     "ES": {
         "menu_home": "🏠 Inicio",
         "menu_profile": "👤 Mi Perfil",
+        "menu_briefing": "✈️ Briefing Room",
         "menu_events": "📅 Eventos",
         "menu_roster": "👨‍✈️ Lista de Pilotos",
         "menu_radar": "🌍 Radar en Vivo",
@@ -156,12 +175,20 @@ TRANS = {
         "stats_hours": "Horas Totales",
         "stats_flights": "Vuelos Realizados",
         "stats_landing": "Aterrizaje Prom.",
+        "leaderboard_title": "🏆 Top 3 - Horas de Vuelo",
         "recent_flights": "✈️ Vuelos Recientes",
         "demo_mode": "ℹ️ Modo Demo (Datos simulados)",
         "event_title": "Próximos Eventos",
         "roster_title": "Equipo ATN-Virtual",
         "roster_inactive": "⛔ INACTIVO",
         "roster_sync": "Datos sincronizados con fsHub",
+        "briefing_title": "Preparación de Vuelo",
+        "briefing_desc": "Prepara tu rotación: Clima, Pronósticos y Plan de Vuelo.",
+        "briefing_dep": "Aeropuerto de Salida",
+        "briefing_arr": "Aeropuerto de Llegada",
+        "briefing_ac": "Tipo de Avión",
+        "briefing_btn": "Generar Briefing",
+        "briefing_simbrief": "🚀 Abrir en SimBrief",
         "pirep_title": "Enviar PIREP Manual",
         "pirep_intro": "Formulario de Respaldo",
         "pirep_warn": "Este formulario está reservado para pilotos con problemas técnicos en el cliente (LRM). Se recomienda usar el cliente automático para mayor precisión.",
@@ -280,6 +307,9 @@ st.markdown("""
     .ev-meta { font-size: 13px; color: #64748b; display: flex; gap: 15px; align-items: center; }
     .ev-tag { background: #f1f5f9; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 11px; color: #475569; }
 
+    /* LEADERBOARD MEDALS */
+    .medal { font-size: 20px; margin-right: 8px; }
+
     .center-text { text-align: center; }
     </style>
     """, unsafe_allow_html=True)
@@ -314,7 +344,18 @@ def get_real_metar(icao_code):
             lines = response.text.strip().split('\n')
             return lines[1] if len(lines) >= 2 else response.text
         return "⚠️ Météo indisponible / METAR unavailable"
-    except: return "⚠️ Erreur connexion / Connection error"
+    except: return "⚠️ Erreur connexion"
+
+def get_real_taf(icao_code):
+    try:
+        url = f"https://tgftp.nws.noaa.gov/data/forecasts/taf/stations/{icao_code}.TXT"
+        response = requests.get(url, timeout=2)
+        if response.status_code == 200:
+            lines = response.text.strip().split('\n')
+            # Le TAF a souvent une ligne d'entête (date), on prend tout
+            return response.text
+        return "⚠️ TAF indisponible"
+    except: return "⚠️ Erreur connexion"
 
 def extract_metar_data(raw_text):
     data = {"Wind": "N/A", "Temp": "N/A", "QNH": "N/A"}
@@ -443,6 +484,7 @@ else:
         nav_options = [
             T("menu_home"),
             T("menu_profile"),
+            T("menu_briefing"),
             T("menu_events"),
             T("menu_roster"),
             T("menu_pirep"),
@@ -474,6 +516,8 @@ else:
     # ACCUEIL
     if selection == T("menu_home"):
         st.title(f"🌺 {T('title_home')} {st.session_state['username']}")
+        
+        # --- METEO ---
         metar_ntaa = get_real_metar('NTAA')
         data_ntaa = extract_metar_data(metar_ntaa)
         with st.expander(f"🌦️ Météo Tahiti (NTAA)", expanded=False):
@@ -483,12 +527,57 @@ else:
             mc3.metric("QNH", data_ntaa["QNH"])
             st.caption(metar_ntaa)
         st.write("")
+        
+        # --- LEADERBOARD (NOUVEAU) ---
+        st.subheader(T("leaderboard_title"))
+        global_hours_map = get_all_pilots_hours_global()
+        
+        # Préparation des données pour le tri
+        ranking_data = []
+        for pilot in ROSTER_DATA:
+            h_str = pilot['default']
+            # On cherche si une valeur plus récente existe
+            for name, h in global_hours_map.items():
+                if pilot['id'] in name:
+                    h_str = h
+                    break
+            
+            # Nettoyage pour convertir en nombre (enlever 'h', ',', ' ')
+            try:
+                clean_h = float(h_str.lower().replace('h','').replace(',','').replace(' ',''))
+            except:
+                clean_h = 0.0
+            
+            ranking_data.append({"nom": pilot['nom'], "raw": h_str, "val": clean_h, "grade": pilot['grade']})
+        
+        # Tri et Top 3
+        ranking_data.sort(key=lambda x: x['val'], reverse=True)
+        top3 = ranking_data[:3]
+        
+        cols_lead = st.columns(3)
+        medals = ["🥇", "🥈", "🥉"]
+        for idx, p_data in enumerate(top3):
+            with cols_lead[idx]:
+                st.markdown(f"""
+                <div style="background: white; border-radius: 10px; padding: 15px; border-top: 5px solid #FFD700; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    <div style="font-size: 30px;">{medals[idx]}</div>
+                    <div style="font-weight: bold; font-size: 18px; color: #2c3e50;">{p_data['nom']}</div>
+                    <div style="color: #7f8c8d; font-size: 12px;">{p_data['grade']}</div>
+                    <div style="font-size: 24px; font-weight: 800; color: #009dff; margin-top: 5px;">{p_data['raw']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        st.markdown("---")
+        
+        # --- STATS GLOBALES ---
         c1,c2,c3,c4 = st.columns(4)
         c1.metric(T("stats_pilots"), str(len(ROSTER_DATA)), "Actifs")
-        c2.metric(T("stats_hours"), "1,254 h", "+12h")
-        c3.metric(T("stats_flights"), "342", "▲")
+        c2.metric(T("stats_hours"), "N/A", "+")
+        c3.metric(T("stats_flights"), "N/A", "▲")
         c4.metric(T("stats_landing"), "-182 fpm", "Moyen")
         st.markdown("---")
+        
+        # --- VOLS RECENTS ---
         st.subheader(T("recent_flights"))
         flights_df, success = get_fshub_flights()
         if not flights_df.empty:
@@ -538,6 +627,46 @@ else:
                 else: st.info("Aucun vol récent trouvé sur fsHub.")
             else: st.warning("Compte non lié à fsHub (ID manquant).")
         else: st.error("Profil introuvable.")
+
+    # BRIEFING ROOM (NOUVEAU)
+    elif selection == T("menu_briefing"):
+        st.title(T("briefing_title"))
+        st.info(T("briefing_desc"))
+        
+        with st.container(border=True):
+            col_b1, col_b2, col_b3 = st.columns(3)
+            dep_b = col_b1.text_input(T("briefing_dep"), max_chars=4, placeholder="NTAA").upper()
+            arr_b = col_b2.text_input(T("briefing_arr"), max_chars=4, placeholder="NTTB").upper()
+            ac_b = col_b3.text_input(T("briefing_ac"), placeholder="A320")
+            
+            if st.button(T("briefing_btn"), type="primary"):
+                if dep_b and arr_b:
+                    st.markdown("---")
+                    col_met1, col_met2 = st.columns(2)
+                    
+                    with col_met1:
+                        st.subheader(f"🛫 {dep_b}")
+                        st.markdown(f"**METAR:** `{get_real_metar(dep_b)}`")
+                        st.markdown(f"**TAF:** `{get_real_taf(dep_b)}`")
+                    
+                    with col_met2:
+                        st.subheader(f"🛬 {arr_b}")
+                        st.markdown(f"**METAR:** `{get_real_metar(arr_b)}`")
+                        st.markdown(f"**TAF:** `{get_real_taf(arr_b)}`")
+                    
+                    # Lien SimBrief
+                    if ac_b:
+                        simbrief_url = f"https://dispatch.simbrief.com/options/new?type={ac_b}&orig={dep_b}&dest={arr_b}"
+                        st.markdown("---")
+                        st.markdown(f"""
+                        <a href="{simbrief_url}" target="_blank">
+                            <button style="width:100%; background-color:#d32f2f; color:white; padding:15px; border-radius:8px; border:none; font-weight:bold; cursor:pointer;">
+                                {T("briefing_simbrief")}
+                            </button>
+                        </a>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.error("Veuillez entrer au moins un aéroport de départ et d'arrivée.")
 
     # EVENEMENTS
     elif selection == T("menu_events"):
@@ -627,7 +756,7 @@ else:
                     else: st.error(T("email_error") + str(res))
                 except Exception as e: st.error(str(e))
 
-    # METAR ON DEMAND (RESTAURÉ)
+    # METAR ON DEMAND
     elif selection == T("menu_metar"):
         st.title(T("metar_title"))
         st.write(T("metar_desc"))
