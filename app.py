@@ -4,6 +4,7 @@ import requests
 import urllib.parse
 from datetime import datetime
 import os
+import base64 # Nécessaire pour l'image en HTML
 import streamlit.components.v1 as components
 
 # --- 1. CONFIGURATION & STYLE ---
@@ -18,7 +19,6 @@ TRANS = {
         "menu_home": "🏠 Accueil",
         "menu_events": "📅 Événements",
         "menu_roster": "👨‍✈️ Roster Pilotes",
-        "menu_radar": "🌍 Radar Live",
         "menu_pirep": "📝 PIREP Manuel",
         "menu_metar": "🌦️ Météo / METAR",
         "menu_tours": "🏆 Validation Tours",
@@ -32,12 +32,9 @@ TRANS = {
         "recent_flights": "✈️ Vols Récents",
         "demo_mode": "ℹ️ Mode Démo (Données simulées)",
         "event_title": "Prochains événements",
-        "roster_title": "L'Équipe ATN-Virtual (Certifiée)",
+        "roster_title": "L'Équipe ATN-Virtual",
         "roster_inactive": "⛔ INACTIF",
         "roster_sync": "Données synchronisées avec fsHub",
-        "radar_title": "Suivi des Vols en Direct",
-        "radar_desc": "Pour des raisons de sécurité imposées par fsHub, la carte ne peut pas s'afficher directement ici. Cliquez ci-dessous pour ouvrir le radar plein écran.",
-        "radar_btn": "🌍 OUVRIR LE RADAR LIVE (Nouvel Onglet)",
         "pirep_title": "Soumettre un rapport manuel (PIREP)",
         "pirep_intro": "Formulaire de secours",
         "pirep_warn": "Ce formulaire est réservé aux pilotes rencontrant des difficultés techniques avec le logiciel de suivi (LRM). L'utilisation du client automatique est recommandée pour la précision des données.",
@@ -74,7 +71,6 @@ TRANS = {
         "menu_home": "🏠 Home",
         "menu_events": "📅 Events",
         "menu_roster": "👨‍✈️ Pilot Roster",
-        "menu_radar": "🌍 Live Radar",
         "menu_pirep": "📝 Manual PIREP",
         "menu_metar": "🌦️ Weather / METAR",
         "menu_tours": "🏆 Tour Validation",
@@ -91,9 +87,6 @@ TRANS = {
         "roster_title": "ATN-Virtual Team",
         "roster_inactive": "⛔ INACTIVE",
         "roster_sync": "Data synced with fsHub",
-        "radar_title": "Live Flight Tracking",
-        "radar_desc": "Due to security restrictions from fsHub, the map cannot be displayed directly here. Click below to open the full-screen radar.",
-        "radar_btn": "🌍 OPEN LIVE RADAR (New Tab)",
         "pirep_title": "Submit Manual PIREP",
         "pirep_intro": "Backup Form",
         "pirep_warn": "This form is intended for pilots experiencing technical issues with the tracking client (LRM). Please use the automated client whenever possible for data accuracy.",
@@ -130,7 +123,6 @@ TRANS = {
         "menu_home": "🏠 Inicio",
         "menu_events": "📅 Eventos",
         "menu_roster": "👨‍✈️ Lista de Pilotos",
-        "menu_radar": "🌍 Radar en Vivo",
         "menu_pirep": "📝 PIREP Manual",
         "menu_metar": "🌦️ Clima / METAR",
         "menu_tours": "🏆 Validación Tours",
@@ -147,9 +139,6 @@ TRANS = {
         "roster_title": "Equipo ATN-Virtual",
         "roster_inactive": "⛔ INACTIVO",
         "roster_sync": "Datos sincronizados con fsHub",
-        "radar_title": "Rastreo de Vuelos en Vivo",
-        "radar_desc": "Debido a restricciones de seguridad de fsHub, el mapa no se puede mostrar aquí. Haga clic abajo para abrir el radar.",
-        "radar_btn": "🌍 ABRIR RADAR EN VIVO (Nueva Pestaña)",
         "pirep_title": "Enviar PIREP Manual",
         "pirep_intro": "Formulario de Respaldo",
         "pirep_warn": "Este formulario está reservado para pilotos con problemas técnicos en el cliente (LRM). Se recomienda usar el cliente automático para mayor precisión.",
@@ -201,11 +190,18 @@ A320_CHECKLIST_DATA = {
 
 # --- GESTION DES IMAGES ---
 LOGO_FILE = "u_23309_200.png" 
-if os.path.exists(LOGO_FILE):
-    LOGO_URL = LOGO_FILE
-else:
-    LOGO_URL = "https://img.fshub.io/images/airlines/2275/avatar.png"
+# Fonction pour convertir l'image locale en Base64 (pour l'affichage HTML forcé)
+def get_img_as_base64(file):
+    try:
+        with open(file, "rb") as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+    except: return None
 
+LOGO_BASE64 = get_img_as_base64(LOGO_FILE) if os.path.exists(LOGO_FILE) else None
+
+# URL de repli si pas d'image locale
+LOGO_URL = f"data:image/png;base64,{LOGO_BASE64}" if LOGO_BASE64 else "https://img.fshub.io/images/airlines/2275/avatar.png"
 PILOT_AVATAR_URL = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
 
 st.markdown("""
@@ -216,7 +212,10 @@ st.markdown("""
     div[data-testid="stMetric"] div[data-testid="stMetricDelta"] { color: #e0e0e0 !important; }
     .metar-box { background-color: #e3f2fd; border-left: 5px solid rgb(0, 157, 255); padding: 15px; font-family: monospace; color: black; }
     .stButton button { width: 100%; }
-    div[data-testid="stImage"] { display: flex; justify-content: center; }
+    
+    /* CSS pour centrer l'image logo login si nécessaire */
+    .login-logo-container { display: flex; justify-content: center; width: 100%; margin-bottom: 20px; }
+    .login-logo { width: 150px; height: auto; }
 
     /* STYLE ROSTER */
     .pilot-card { background-color: white; border: 1px solid #e0e0e0; border-top: 4px solid rgb(0, 157, 255); border-radius: 12px; padding: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s; min-height: 140px; display: flex; align-items: center; gap: 15px; }
@@ -266,7 +265,7 @@ try:
 except FileNotFoundError:
     USERS_DB = { "admin": "admin", "THT1001": "1234" }
 
-# --- 3. DONNÉES ROSTER (COMPLET & CONNECTÉ) ---
+# --- 3. DONNÉES ROSTER ---
 ROSTER_DATA = [
     {"id": "THT1001", "nom": "Guillaume B.", "grade": "CDB", "role": "STAFF", "fshub_id": "23309", "default": "232h"},
     {"id": "THT1002", "nom": "Alain L.", "grade": "CDB", "role": "STAFF", "fshub_id": "23385", "default": "190h"},
@@ -349,12 +348,14 @@ if 'event_participants' not in st.session_state: st.session_state['event_partici
 
 # --- 6. LOGIN ---
 def login_page():
-    c1, c2, c3 = st.columns([1, 1, 1]) 
-    with c2:
-        try: st.image(LOGO_URL, width=150)
-        except: pass
+    # Affichage du logo centré en HTML pour être sûr
+    st.markdown(f"""
+        <div class="login-logo-container">
+            <img src="{LOGO_URL}" class="login-logo">
+        </div>
+        <h1 style='text-align: center;'>CREW CENTER ATN-VIRTUAL VA</h1>
+    """, unsafe_allow_html=True)
     
-    st.markdown("<h1 style='text-align: center;'>CREW CENTER ATN-VIRTUAL VA</h1>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         with st.form("login"):
@@ -431,7 +432,6 @@ else:
             T("menu_home"),
             T("menu_events"),
             T("menu_roster"),
-            T("menu_radar"),
             T("menu_pirep"),
             T("menu_metar"),
             T("menu_tours"),
@@ -440,6 +440,9 @@ else:
         ]
         
         selection = st.radio("Navigation", nav_options)
+        
+        st.markdown("---")
+        st.link_button("🌍 Radar Live", "https://fshub.io/airline/THT/radar")
         
         st.markdown("---")
         st.link_button("💬 Discord", "https://discord.gg/BQqtsrFJ")
@@ -571,12 +574,6 @@ else:
                 if completed:
                     st.success(T("checklist_complete"))
                     st.balloons()
-
-    # RADAR LIVE
-    elif selection == T("menu_radar"):
-        st.title(T("radar_title"))
-        st.info(T("radar_desc"))
-        st.link_button(T("radar_btn"), "https://fshub.io/airline/THT/radar")
 
     # PIREP
     elif selection == T("menu_pirep"):
