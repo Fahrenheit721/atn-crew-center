@@ -378,21 +378,16 @@ def get_pilot_personal_flights(fshub_id):
 # --- FONCTION ENVOI EMAIL SMTP ---
 def send_email_via_ionos(subject, body):
     try:
-        # Récupération des secrets
         smtp_server = st.secrets["email"]["smtp_server"]
         smtp_port = st.secrets["email"]["smtp_port"]
         username = st.secrets["email"]["username"]
         password = st.secrets["email"]["password"]
         receiver = st.secrets["email"]["receiver_email"]
-
-        # Création du message
         msg = MIMEMultipart()
         msg['From'] = username
         msg['To'] = receiver
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
-
-        # Connexion et envoi
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.starttls()
             server.login(username, password)
@@ -631,6 +626,31 @@ else:
                     if res is True: st.success(T("email_success"))
                     else: st.error(T("email_error") + str(res))
                 except Exception as e: st.error(str(e))
+
+    # METAR ON DEMAND (RESTAURÉ)
+    elif selection == T("menu_metar"):
+        st.title(T("metar_title"))
+        st.write(T("metar_desc"))
+        with st.container(border=True):
+            c_met_1, c_met_2 = st.columns([3, 1])
+            with c_met_1: icao_search = st.text_input(T("metar_label"), max_chars=4, placeholder="ex: NTAA").upper()
+            with c_met_2:
+                st.write(""); st.write("")
+                search_btn = st.button(T("metar_btn"), type="primary", use_container_width=True)
+            if search_btn and icao_search:
+                st.markdown("---")
+                raw_metar = get_real_metar(icao_search)
+                if "⚠️" not in raw_metar:
+                    data = extract_metar_data(raw_metar)
+                    st.subheader(f"📍 {icao_search} - {T('metar_decoded')}")
+                    m1, m2, m3 = st.columns(3)
+                    m1.metric("💨 Vent / Wind", data["Wind"])
+                    m2.metric("🌡️ Temp.", data["Temp"])
+                    m3.metric("⏱️ QNH", data["QNH"])
+                    st.write("")
+                    st.caption(T("metar_raw"))
+                    st.code(raw_metar, language="text")
+                else: st.error(raw_metar)
 
     # VALIDATION TOURS
     elif selection == T("menu_tours"):
