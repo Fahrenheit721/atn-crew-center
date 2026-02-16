@@ -475,30 +475,71 @@ def send_email_via_ionos(subject, body):
 if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
 if 'event_participants' not in st.session_state: 
     st.session_state['event_participants'] = load_event_data()
+if 'show_register' not in st.session_state: st.session_state['show_register'] = False
 
 def login_page():
     st.markdown(f"""<div class="login-logo-container"><img src="{LOGO_URL}" class="login-logo"></div><h1 style='text-align: center;'>CREW CENTER ATN-VIRTUAL VA</h1>""", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        with st.form("login"):
-            u = st.text_input("Identifiant")
-            p = st.text_input("Mot de passe", type="password")
-            if st.form_submit_button("Se connecter ✈️"):
-                if u in USERS_DB and USERS_DB[u] == p:
-                    st.session_state['logged_in'] = True
-                    st.session_state['username'] = u
-                    st.rerun()
-                else: st.error("❌ Erreur connexion")
-        st.write("")
-        st.markdown("---")
-        with st.container(border=True):
-            st.markdown("<h3 class='center-text'>🌟 Rejoignez l'aventure !</h3>", unsafe_allow_html=True)
-            st.markdown("""<div style='text-align: center; color: #57606a; margin-bottom: 20px;'>Embarquez pour une expérience immersive au cœur du Pacifique...</div>""", unsafe_allow_html=True)
-            c_invit1, c_invit2 = st.columns(2)
-            with c_invit1: st.link_button("📝 Inscription fsHub", "https://fshub.io/airline/THT/overview", use_container_width=True)
-            with c_invit2: st.link_button("🌐 Notre Site Web", "https://www.atnvirtual.fr/", use_container_width=True)
+        if st.session_state['show_register']:
+            st.markdown("### 📝 Demande d'inscription")
+            with st.form("register_form"):
+                r_nom = st.text_input("Nom")
+                r_prenom = st.text_input("Prénom")
+                r_email = st.text_input("Email")
+                r_vid = st.text_input("VID IVAO (Ex: 654321)")
+                r_age = st.number_input("Âge", min_value=0, max_value=99, step=1)
+                
+                submitted = st.form_submit_button("Envoyer ma candidature")
+                if submitted:
+                    if r_age < 16:
+                        st.error("⛔ Désolé, l'âge minimum requis est de 16 ans.")
+                    elif not r_nom or not r_prenom or not r_email or not r_vid:
+                        st.warning("⚠️ Veuillez remplir tous les champs.")
+                    else:
+                        # Envoi Email
+                        subject = f"[INSCRIPTION] Nouveau Pilote : {r_prenom} {r_nom}"
+                        body = f"""
+                        NOUVELLE DEMANDE D'INSCRIPTION
+                        ------------------------------
+                        Nom : {r_nom}
+                        Prénom : {r_prenom}
+                        Email : {r_email}
+                        VID IVAO : {r_vid} (A vérifier sur ivao.aero)
+                        Âge : {r_age} ans
+                        
+                        Action requise : Vérifier le VID et créer le compte dans le fichier secrets.
+                        """
+                        if send_email_via_ionos(subject, body) is True:
+                            st.success("✅ Candidature envoyée ! Le Staff vous contactera sous 48h.")
+                        else:
+                            st.error("Erreur technique lors de l'envoi.")
+            
+            if st.button("⬅️ Retour connexion"):
+                st.session_state['show_register'] = False
+                st.rerun()
+        else:
+            with st.form("login"):
+                u = st.text_input("Identifiant")
+                p = st.text_input("Mot de passe", type="password")
+                if st.form_submit_button("Se connecter ✈️"):
+                    if u in USERS_DB and USERS_DB[u] == p:
+                        st.session_state['logged_in'] = True
+                        st.session_state['username'] = u
+                        st.rerun()
+                    else: st.error("❌ Erreur connexion")
+            st.write("")
+            if st.button("📝 Créer un compte / Rejoindre"):
+                st.session_state['show_register'] = True
+                st.rerun()
+            
             st.markdown("---")
-            st.info("ℹ️ **Information d'accès :** Vos identifiants personnels...")
+            with st.container(border=True):
+                st.markdown("<h3 class='center-text'>🌟 Rejoignez l'aventure !</h3>", unsafe_allow_html=True)
+                st.markdown("""<div style='text-align: center; color: #57606a; margin-bottom: 20px;'>Embarquez pour une expérience immersive au cœur du Pacifique...</div>""", unsafe_allow_html=True)
+                c_invit1, c_invit2 = st.columns(2)
+                with c_invit1: st.link_button("📝 Inscription fsHub", "https://fshub.io/airline/THT/overview", use_container_width=True)
+                with c_invit2: st.link_button("🌐 Notre Site Web", "https://www.atnvirtual.fr/", use_container_width=True)
 
 if not st.session_state['logged_in']:
     login_page()
@@ -742,36 +783,7 @@ else:
                     if not st.checkbox(item, key=f"chk_{phase}_{i}"): completed = False
                 if completed: st.success(T("checklist_complete"))
 
-    # VALIDATION TOURS (RESTAURÉ VRAIE VERSION V58)
-    elif selection == T("menu_tours"):
-        st.title("🏆 Validation d'Étape de Tour")
-        st.info("Utilisez ce formulaire uniquement pour valider une étape de tour pilote.")
-        with st.container(border=True):
-            col_main1, col_main2 = st.columns(2)
-            with col_main1:
-                st.write("### 📍 Informations Tour")
-                selected_tour = st.selectbox("Sélectionner le Tour concerné", LISTE_TOURS)
-                leg_number = st.number_input("Numéro de l'étape", min_value=1, max_value=12, value=1, step=1)
-                st.write("### ✈️ Informations Vol")
-                callsign = st.text_input("Callsign", value=st.session_state['username'], disabled=True)
-                aircraft = st.text_input("Appareil utilisé", placeholder="ex: B789")
-            with col_main2:
-                st.write("### 🕰️ Horaires (ZULU)")
-                c1, c2 = st.columns(2)
-                dep_icao = c1.text_input("Départ (ICAO)", max_chars=4).upper()
-                arr_icao = c2.text_input("Arrivée (ICAO)", max_chars=4).upper()
-                date_flight = st.date_input("Date du vol")
-                flight_time = st.text_input("Temps de vol (Block)", placeholder="ex: 01:45")
-            comment = st.text_area("Lien du rapport fsHub (Optionnel) ou Remarques")
-            
-            if st.button("✅ ENVOYER LA VALIDATION (Direct)", type="primary"):
-                subject = f"VALIDATION TOUR - {selected_tour} - Etape {leg_number} - {st.session_state['username']}"
-                body = f"PILOTE: {st.session_state['username']}\nTOUR: {selected_tour}\nETAPE: {leg_number}\nAVION: {aircraft}\nDEPART: {dep_icao}\nARRIVEE: {arr_icao}\nDATE: {date_flight}\nTEMPS: {flight_time}\nREMARQUES: {comment}"
-                res = send_email_via_ionos(subject, body)
-                if res is True: st.success(T("email_success"))
-                else: st.error(T("email_error") + str(res))
-
-    # PIREP (RESTAURÉ COMPLET V42)
+    # PIREP (RESTAURÉ COMPLET)
     elif selection == T("menu_pirep"):
         st.title(T("pirep_title"))
         with st.expander(T("pirep_intro"), expanded=True):
@@ -784,6 +796,7 @@ else:
             p_dep = c_fp_3.text_input(T("form_dep"), max_chars=4, placeholder="NTAA").upper()
             p_arr = c_fp_4.text_input(T("form_arr"), max_chars=4, placeholder="KLAX").upper()
             st.markdown("---")
+            # RESTAURATION DES CHAMPS DATE/HEURE
             c_fp_5, c_fp_6 = st.columns(2)
             p_date_dep = c_fp_5.date_input(T("form_date_dep"))
             p_time_dep = c_fp_6.text_input(T("form_time_dep"), placeholder="HH:MM")
@@ -821,7 +834,36 @@ else:
                     st.code(raw, language="text")
                 else: st.error(raw)
 
-    # CONTACT (CORRIGÉ BUG VARIABLE + DESIGN V46)
+    # VALIDATION TOURS (RESTAURÉ VRAIE VERSION)
+    elif selection == T("menu_tours"):
+        st.title("🏆 Validation d'Étape de Tour")
+        st.info("Utilisez ce formulaire uniquement pour valider une étape de tour pilote.")
+        with st.container(border=True):
+            col_main1, col_main2 = st.columns(2)
+            with col_main1:
+                st.write("### 📍 Informations Tour")
+                selected_tour = st.selectbox("Sélectionner le Tour concerné", LISTE_TOURS)
+                leg_number = st.number_input("Numéro de l'étape", min_value=1, max_value=12, value=1, step=1)
+                st.write("### ✈️ Informations Vol")
+                callsign = st.text_input("Callsign", value=st.session_state['username'], disabled=True)
+                aircraft = st.text_input("Appareil utilisé", placeholder="ex: B789")
+            with col_main2:
+                st.write("### 🕰️ Horaires (ZULU)")
+                c1, c2 = st.columns(2)
+                dep_icao = c1.text_input("Départ (ICAO)", max_chars=4).upper()
+                arr_icao = c2.text_input("Arrivée (ICAO)", max_chars=4).upper()
+                date_flight = st.date_input("Date du vol")
+                flight_time = st.text_input("Temps de vol (Block)", placeholder="ex: 01:45")
+            comment = st.text_area("Lien du rapport fsHub (Optionnel) ou Remarques")
+            
+            if st.button("✅ ENVOYER LA VALIDATION (Direct)", type="primary"):
+                subject = f"VALIDATION TOUR - {selected_tour} - Etape {leg_number} - {st.session_state['username']}"
+                body = f"PILOTE: {st.session_state['username']}\nTOUR: {selected_tour}\nETAPE: {leg_number}\nAVION: {aircraft}\nDEPART: {dep_icao}\nARRIVEE: {arr_icao}\nDATE: {date_flight}\nTEMPS: {flight_time}\nREMARQUES: {comment}"
+                res = send_email_via_ionos(subject, body)
+                if res is True: st.success(T("email_success"))
+                else: st.error(T("email_error") + str(res))
+
+    # CONTACT (CORRIGÉ BUG VARIABLE + DESIGN)
     elif selection == T("menu_contact"):
         st.title(T("contact_title"))
         c_contact_1, c_contact_2 = st.columns([1, 2])
@@ -839,7 +881,6 @@ else:
                 message_contact = st.text_area(T("form_msg"), height=150)
                 
                 if st.button(T("contact_send"), type="primary"):
-                    # Utilisation de la bonne variable 'sujet_contact'
                     final_subject = f"[Crew Center] {sujet_contact}" if sujet_contact else "[Crew Center] Nouvelle demande"
                     body = f"De: {st.session_state['username']}\n\n{message_contact}"
                     res = send_email_via_ionos(final_subject, body)
