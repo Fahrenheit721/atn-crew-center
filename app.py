@@ -18,6 +18,61 @@ st.set_page_config(page_title="ATN-Virtual | Crew Center", page_icon="🌺", lay
 # --- GESTION LANGUE (Session) ---
 if 'lang' not in st.session_state: st.session_state['lang'] = 'FR'
 
+# --- BANQUE DE QUESTIONS (EXAMEN ENTREE) ---
+# Tu peux modifier les questions et réponses ici directement
+QUIZ_DATA = [
+    {
+        "question": "Quelle est la signification de VFR ?",
+        "options": ["Visual Flight Rules", "Very Fast Run", "Vertical Flight Range", "Variable Fuel Rate"],
+        "answer": "Visual Flight Rules"
+    },
+    {
+        "question": "Quelle est la couleur des feux de piste de gauche (bâbord) ?",
+        "options": ["Vert", "Rouge", "Blanc", "Bleu"],
+        "answer": "Rouge"
+    },
+    {
+        "question": "Que signifie QNH ?",
+        "options": ["Pression au niveau de la mer", "Pression au sol", "Altitude pression standard", "Qualité Niveaux Hauts"],
+        "answer": "Pression au niveau de la mer"
+    },
+    {
+        "question": "Sur un A320, quelle est la vitesse de rotation approximative (Vr) à masse standard ?",
+        "options": ["100 kts", "140 kts", "180 kts", "220 kts"],
+        "answer": "140 kts"
+    },
+    {
+        "question": "Quel est le code OACI de l'aéroport de Tahiti Faa'a ?",
+        "options": ["NTAA", "NTTB", "NTTR", "KLAX"],
+        "answer": "NTAA"
+    },
+    {
+        "question": "En espace aérien de classe C, le contact radio est-il obligatoire ?",
+        "options": ["Oui", "Non", "Seulement la nuit", "Uniquement pour les jets"],
+        "answer": "Oui"
+    },
+    {
+        "question": "Que signifie METAR ?",
+        "options": ["Meteorological Aerodrome Report", "Meteo Target Area Radar", "Medium Temperature Area Range", "Metal Airplane Report"],
+        "answer": "Meteorological Aerodrome Report"
+    },
+    {
+        "question": "Quelle est la fréquence de détresse internationale ?",
+        "options": ["121.500", "122.800", "118.100", "130.000"],
+        "answer": "121.500"
+    },
+    {
+        "question": "Un cap à 270° correspond à quelle direction ?",
+        "options": ["Nord", "Sud", "Est", "Ouest"],
+        "answer": "Ouest"
+    },
+    {
+        "question": "Quelle est l'altitude de transition standard aux USA ?",
+        "options": ["18 000 ft", "5 000 ft", "10 000 ft", "3 000 ft"],
+        "answer": "18 000 ft"
+    }
+]
+
 # --- GESTION MEMOIRE (JSON) ---
 DB_FILE = "events_db.json"
 
@@ -138,7 +193,7 @@ TRANS = {
         "briefing_ac": "✈️ Aircraft",
         "briefing_btn": "📡 ANALYZE ROUTE",
         "briefing_simbrief": "🚀 GENERATE OFP (SimBrief)",
-        "pirep_title": "📝 Submit Manual PIREP",
+        "pirep_title": "Submit Manual PIREP",
         "pirep_intro": "Backup Form",
         "pirep_warn": "This form is intended for pilots experiencing technical issues with the tracking client (LRM). Please use the automated client whenever possible for data accuracy.",
         "pirep_send": "📤 SUBMIT REPORT",
@@ -208,7 +263,7 @@ TRANS = {
         "briefing_ac": "Tipo de Avión",
         "briefing_btn": "Generar Briefing",
         "briefing_simbrief": "🚀 Abrir en SimBrief",
-        "pirep_title": "📝 Enviar PIREP Manual",
+        "pirep_title": "Enviar PIREP Manual",
         "pirep_intro": "Formulario de Respaldo",
         "pirep_warn": "Este formulario está reservado para pilotos con problemas técnicos en el cliente (LRM). Se recomienda usar el cliente automático para mayor precisión.",
         "pirep_send": "📤 ENVIAR REPORTE",
@@ -472,61 +527,110 @@ def send_email_via_ionos(subject, body):
         return True
     except Exception as e: return str(e)
 
+# --- INIT SESSION ---
 if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
-if 'event_participants' not in st.session_state: 
-    st.session_state['event_participants'] = load_event_data()
+if 'event_participants' not in st.session_state: st.session_state['event_participants'] = load_event_data()
 if 'show_register' not in st.session_state: st.session_state['show_register'] = False
+if 'quiz_started' not in st.session_state: st.session_state['quiz_started'] = False
+if 'quiz_index' not in st.session_state: st.session_state['quiz_index'] = 0
+if 'quiz_score' not in st.session_state: st.session_state['quiz_score'] = 0
+if 'quiz_passed' not in st.session_state: st.session_state['quiz_passed'] = False
 
 def login_page():
     st.markdown(f"""<div class="login-logo-container"><img src="{LOGO_URL}" class="login-logo"></div><h1 style='text-align: center;'>CREW CENTER ATN-VIRTUAL VA</h1>""", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
+        # LOGIQUE D'INSCRIPTION / QUIZ
         if st.session_state['show_register']:
-            st.markdown("### 📝 Demande d'inscription")
-            with st.form("register_form"):
-                r_nom = st.text_input("Nom *")
-                r_prenom = st.text_input("Prénom *")
-                r_email = st.text_input("Email *")
-                r_vid = st.text_input("VID IVAO *")
-                r_dob = st.date_input("Date de naissance *", min_value=date(1950, 1, 1), max_value=date.today())
+            # ETAPE 1 : QUIZ (Si pas encore passé)
+            if not st.session_state['quiz_passed']:
+                st.markdown("### 🎓 Examen d'entrée")
+                st.info("Pour rejoindre ATN-Virtual, vous devez réussir ce test de connaissances aéronautiques (Score mini: 8/10).")
                 
-                # Checkbox Règlement avec lien
-                st.markdown("Veuillez lire le règlement : [Règlement Intérieur](https://www.atnvirtual.fr/about-4)")
-                r_rules = st.checkbox("J'ai lu et j'accepte le règlement du site *")
-                
-                submitted = st.form_submit_button("Envoyer ma candidature")
-                if submitted:
-                    if not r_nom or not r_prenom or not r_email or not r_vid or not r_rules:
-                        st.warning("⚠️ Veuillez remplir tous les champs obligatoires et accepter le règlement.")
-                    else:
-                        # Calcul Age
-                        today = date.today()
-                        age = today.year - r_dob.year - ((today.month, today.day) < (r_dob.month, r_dob.day))
-                        
-                        # Envoi Email
-                        subject = f"[INSCRIPTION] Nouveau Pilote : {r_prenom} {r_nom}"
-                        body = f"""
-                        NOUVELLE DEMANDE D'INSCRIPTION
-                        ------------------------------
-                        Nom : {r_nom}
-                        Prénom : {r_prenom}
-                        Email : {r_email}
-                        VID IVAO : {r_vid} (A vérifier sur ivao.aero)
-                        Date de Naissance : {r_dob}
-                        Âge Calculé : {age} ans
-                        
-                        Règlement accepté : OUI
-                        
-                        Action requise : Vérifier le VID et l'âge (Min 16 ans).
-                        """
-                        if send_email_via_ionos(subject, body) is True:
-                            st.success("✅ Candidature envoyée ! Le Staff vous contactera sous 48h.")
+                # Vérifie si le quiz est fini
+                if st.session_state['quiz_index'] < len(QUIZ_DATA):
+                    q_data = QUIZ_DATA[st.session_state['quiz_index']]
+                    st.markdown(f"**Question {st.session_state['quiz_index']+1}/{len(QUIZ_DATA)}**")
+                    st.write(q_data['question'])
+                    
+                    # Choix réponse (clé unique pour éviter conflit)
+                    choice = st.radio("Votre réponse :", q_data['options'], key=f"q_{st.session_state['quiz_index']}")
+                    
+                    if st.button("Valider la réponse"):
+                        if choice == q_data['answer']:
+                            st.session_state['quiz_score'] += 1
+                            st.success("✅ Bonne réponse !")
                         else:
-                            st.error("Erreur technique lors de l'envoi.")
+                            st.error(f"❌ Mauvaise réponse. La bonne réponse était : {q_data['answer']}")
+                        
+                        # Passer à la suivante
+                        st.session_state['quiz_index'] += 1
+                        st.rerun()
+                else:
+                    # FIN DU QUIZ
+                    final_score = st.session_state['quiz_score']
+                    st.write(f"### 🏁 Résultat : {final_score}/10")
+                    
+                    if final_score >= 8:
+                        st.balloons()
+                        st.success("🎉 Félicitations ! Vous avez réussi l'examen.")
+                        if st.button("Accéder au formulaire d'inscription"):
+                            st.session_state['quiz_passed'] = True
+                            st.rerun()
+                    else:
+                        st.error("⛔ Échec. Vous devez obtenir au moins 8/10.")
+                        if st.button("Réessayer"):
+                            st.session_state['quiz_index'] = 0
+                            st.session_state['quiz_score'] = 0
+                            st.rerun()
             
+            # ETAPE 2 : FORMULAIRE (Si Quiz OK)
+            else:
+                st.markdown("### 📝 Formulaire d'Inscription")
+                st.success("✅ Examen validé.")
+                with st.form("register_form"):
+                    r_nom = st.text_input("Nom *")
+                    r_prenom = st.text_input("Prénom *")
+                    r_email = st.text_input("Email *")
+                    r_vid = st.text_input("VID IVAO *")
+                    r_dob = st.date_input("Date de naissance *", min_value=date(1950, 1, 1), max_value=date.today())
+                    st.markdown("Veuillez lire le règlement : [Règlement Intérieur](https://www.atnvirtual.fr/about-4)")
+                    r_rules = st.checkbox("J'ai lu et j'accepte le règlement du site *")
+                    
+                    submitted = st.form_submit_button("Envoyer ma candidature")
+                    if submitted:
+                        if not r_nom or not r_prenom or not r_email or not r_vid or not r_rules:
+                            st.warning("⚠️ Veuillez remplir tous les champs obligatoires.")
+                        else:
+                            today = date.today()
+                            age = today.year - r_dob.year - ((today.month, today.day) < (r_dob.month, r_dob.day))
+                            
+                            subject = f"[INSCRIPTION] Nouveau Pilote : {r_prenom} {r_nom}"
+                            body = f"""
+                            NOUVELLE DEMANDE D'INSCRIPTION (QUIZ REUSSI)
+                            --------------------------------------------
+                            Nom : {r_nom}
+                            Prénom : {r_prenom}
+                            Email : {r_email}
+                            VID IVAO : {r_vid}
+                            Date de Naissance : {r_dob}
+                            Âge Calculé : {age} ans
+                            Score Examen : {st.session_state['quiz_score']}/10
+                            
+                            Action : Vérifier VID + Âge (Min 16 ans).
+                            """
+                            if send_email_via_ionos(subject, body) is True:
+                                st.success("✅ Candidature envoyée ! Le Staff vous contactera.")
+                            else:
+                                st.error("Erreur technique.")
+
             if st.button("⬅️ Retour connexion"):
                 st.session_state['show_register'] = False
+                st.session_state['quiz_passed'] = False
+                st.session_state['quiz_index'] = 0
+                st.session_state['quiz_score'] = 0
                 st.rerun()
+
         else:
             with st.form("login"):
                 u = st.text_input("Identifiant")
@@ -539,7 +643,6 @@ def login_page():
                     else: st.error("❌ Erreur connexion")
             
             st.write("")
-            # Bouton centré
             c_reg1, c_reg2, c_reg3 = st.columns([1, 2, 1])
             with c_reg2:
                 if st.button("📝 Créer un compte"):
@@ -772,7 +875,6 @@ else:
                     if not st.checkbox(item, key=f"chk_{phase}_{i}"): completed = False
                 if completed: st.success(T("checklist_complete"))
 
-    # PIREP (RESTAURÉ COMPLET)
     elif selection == T("menu_pirep"):
         st.title(T("pirep_title"))
         with st.expander(T("pirep_intro"), expanded=True):
@@ -824,6 +926,7 @@ else:
 
     elif selection == T("menu_tours"):
         st.title("🏆 Validation d'Étape de Tour")
+        st.info("Utilisez ce formulaire uniquement pour valider une étape de tour pilote.")
         with st.container(border=True):
             col_main1, col_main2 = st.columns(2)
             with col_main1:
