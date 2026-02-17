@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 import re
 import urllib.parse
-from datetime import datetime
+from datetime import datetime, date
 import os
 import base64
 import smtplib
@@ -68,13 +68,13 @@ TRANS = {
         "briefing_ac": "✈️ Appareil",
         "briefing_btn": "📡 ANALYSER LA ROUTE",
         "briefing_simbrief": "🚀 GÉNÉRER OFP (SimBrief)",
-        "pirep_title": "Soumettre un rapport manuel (PIREP)",
+        "pirep_title": "📝 Soumettre un rapport manuel (PIREP)",
         "pirep_intro": "Formulaire de secours",
         "pirep_warn": "Ce formulaire est réservé aux pilotes rencontrant des difficultés techniques avec le logiciel de suivi (LRM). L'utilisation du client automatique est recommandée pour la précision des données.",
-        "pirep_send": "📤 ENVOYER LE RAPPORT (Direct)",
+        "pirep_send": "📤 ENVOYER LE RAPPORT",
         "contact_title": "Contactez-nous",
         "contact_desc": "Une question ? Une suggestion ? Le Staff est à votre écoute.",
-        "contact_send": "📤 ENVOYER LE MESSAGE (Direct)",
+        "contact_send": "📤 ENVOYER LE MESSAGE",
         "form_subject": "Sujet de votre message",
         "form_msg": "Votre message détaillé...",
         "form_dep": "🛫 Départ (OACI)",
@@ -138,13 +138,13 @@ TRANS = {
         "briefing_ac": "✈️ Aircraft",
         "briefing_btn": "📡 ANALYZE ROUTE",
         "briefing_simbrief": "🚀 GENERATE OFP (SimBrief)",
-        "pirep_title": "Submit Manual PIREP",
+        "pirep_title": "📝 Submit Manual PIREP",
         "pirep_intro": "Backup Form",
         "pirep_warn": "This form is intended for pilots experiencing technical issues with the tracking client (LRM). Please use the automated client whenever possible for data accuracy.",
-        "pirep_send": "📤 SUBMIT REPORT (Direct)",
+        "pirep_send": "📤 SUBMIT REPORT",
         "contact_title": "Contact Us",
         "contact_desc": "Any questions? Suggestions? The Staff is here to help.",
-        "contact_send": "📤 SEND MESSAGE (Direct)",
+        "contact_send": "📤 SEND MESSAGE",
         "form_subject": "Subject",
         "form_msg": "Your detailed message...",
         "form_dep": "🛫 Departure (ICAO)",
@@ -208,13 +208,13 @@ TRANS = {
         "briefing_ac": "Tipo de Avión",
         "briefing_btn": "Generar Briefing",
         "briefing_simbrief": "🚀 Abrir en SimBrief",
-        "pirep_title": "Enviar PIREP Manual",
+        "pirep_title": "📝 Enviar PIREP Manual",
         "pirep_intro": "Formulario de Respaldo",
         "pirep_warn": "Este formulario está reservado para pilotos con problemas técnicos en el cliente (LRM). Se recomienda usar el cliente automático para mayor precisión.",
-        "pirep_send": "📤 ENVIAR REPORTE (Directo)",
+        "pirep_send": "📤 ENVIAR REPORTE",
         "contact_title": "Contáctanos",
         "contact_desc": "¿Necesitas ayuda? Rellena este formulario.",
-        "contact_send": "📤 ENVIAR SOLICITUD (Directo)",
+        "contact_send": "📤 ENVIAR SOLICITUD",
         "form_subject": "Asunto",
         "form_msg": "Mensaje",
         "form_dep": "🛫 Salida (OACI)",
@@ -406,7 +406,7 @@ def get_all_pilots_hours_global():
 @st.cache_data(ttl=300)
 def get_va_stats_surgical():
     url = "https://fshub.io/airline/THT/overview"
-    # VALEURS PAR DEFAUT FORCEES (Tes chiffres)
+    # VALEURS PAR DEFAUT FORCEES
     stats = {"flights": "835", "hours": "1,828"} 
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
@@ -484,19 +484,25 @@ def login_page():
         if st.session_state['show_register']:
             st.markdown("### 📝 Demande d'inscription")
             with st.form("register_form"):
-                r_nom = st.text_input("Nom")
-                r_prenom = st.text_input("Prénom")
-                r_email = st.text_input("Email")
-                r_vid = st.text_input("VID IVAO (Ex: 654321)")
-                r_age = st.number_input("Âge", min_value=0, max_value=99, step=1)
+                r_nom = st.text_input("Nom *")
+                r_prenom = st.text_input("Prénom *")
+                r_email = st.text_input("Email *")
+                r_vid = st.text_input("VID IVAO *")
+                r_dob = st.date_input("Date de naissance *", min_value=date(1950, 1, 1), max_value=date.today())
+                
+                # Checkbox Règlement avec lien
+                st.markdown("Veuillez lire le règlement : [Règlement Intérieur](https://www.atnvirtual.fr/about-4)")
+                r_rules = st.checkbox("J'ai lu et j'accepte le règlement du site *")
                 
                 submitted = st.form_submit_button("Envoyer ma candidature")
                 if submitted:
-                    if r_age < 16:
-                        st.error("⛔ Désolé, l'âge minimum requis est de 16 ans.")
-                    elif not r_nom or not r_prenom or not r_email or not r_vid:
-                        st.warning("⚠️ Veuillez remplir tous les champs.")
+                    if not r_nom or not r_prenom or not r_email or not r_vid or not r_rules:
+                        st.warning("⚠️ Veuillez remplir tous les champs obligatoires et accepter le règlement.")
                     else:
+                        # Calcul Age
+                        today = date.today()
+                        age = today.year - r_dob.year - ((today.month, today.day) < (r_dob.month, r_dob.day))
+                        
                         # Envoi Email
                         subject = f"[INSCRIPTION] Nouveau Pilote : {r_prenom} {r_nom}"
                         body = f"""
@@ -506,9 +512,12 @@ def login_page():
                         Prénom : {r_prenom}
                         Email : {r_email}
                         VID IVAO : {r_vid} (A vérifier sur ivao.aero)
-                        Âge : {r_age} ans
+                        Date de Naissance : {r_dob}
+                        Âge Calculé : {age} ans
                         
-                        Action requise : Vérifier le VID et créer le compte dans le fichier secrets.
+                        Règlement accepté : OUI
+                        
+                        Action requise : Vérifier le VID et l'âge (Min 16 ans).
                         """
                         if send_email_via_ionos(subject, body) is True:
                             st.success("✅ Candidature envoyée ! Le Staff vous contactera sous 48h.")
@@ -528,15 +537,19 @@ def login_page():
                         st.session_state['username'] = u
                         st.rerun()
                     else: st.error("❌ Erreur connexion")
+            
             st.write("")
-            if st.button("📝 Créer un compte / Rejoindre"):
-                st.session_state['show_register'] = True
-                st.rerun()
+            # Bouton centré
+            c_reg1, c_reg2, c_reg3 = st.columns([1, 2, 1])
+            with c_reg2:
+                if st.button("📝 Créer un compte"):
+                    st.session_state['show_register'] = True
+                    st.rerun()
             
             st.markdown("---")
             with st.container(border=True):
                 st.markdown("<h3 class='center-text'>🌟 Rejoignez l'aventure !</h3>", unsafe_allow_html=True)
-                st.markdown("""<div style='text-align: center; color: #57606a; margin-bottom: 20px;'>Embarquez pour une expérience immersive au cœur du Pacifique...</div>""", unsafe_allow_html=True)
+                st.markdown("""<div style='text-align: center; color: #57606a; margin-bottom: 20px;'>Embarquez pour une expérience immersive au cœur du Pacifique. Du vol inter-îles en ATR au long-courrier en Dreamliner, vivez la simulation autrement dans une ambiance conviviale et professionnelle.</div>""", unsafe_allow_html=True)
                 c_invit1, c_invit2 = st.columns(2)
                 with c_invit1: st.link_button("📝 Inscription fsHub", "https://fshub.io/airline/THT/overview", use_container_width=True)
                 with c_invit2: st.link_button("🌐 Notre Site Web", "https://www.atnvirtual.fr/", use_container_width=True)
@@ -558,7 +571,7 @@ else:
         selection = st.radio("Navigation", nav_options)
         st.markdown("---")
         st.link_button("🌍 Radar Live", "https://fshub.io/airline/THT/radar")
-        st.link_button("💬 Discord", "https://discord.gg/BQqtsrFJ")
+        st.link_button("💬 Discord", "https://discord.gg/mxGsAQr3V6")
         st.link_button("🌐 Site Officiel", "https://www.atnvirtual.fr/")
         st.caption(T("ext_tools"))
         c1, c2 = st.columns(2)
@@ -665,74 +678,50 @@ else:
         st.title(T("briefing_title"))
         st.info(T("briefing_desc"))
         
-        # --- MISE EN PAGE BEAU TABLEAU DE BORD ---
         st.markdown("### 🗺️ Plan de Vol")
         with st.container(border=True):
-            # Ligne 1 : Inputs
             c1, c2, c3 = st.columns(3)
             with c1: dep = st.text_input(T("briefing_dep"), max_chars=4, placeholder="NTAA").upper()
             with c2: arr = st.text_input(T("briefing_arr"), max_chars=4, placeholder="NTTB").upper()
             with c3: ac = st.text_input(T("briefing_ac"), placeholder="A320")
             
-            st.write("") # Espacement
+            st.write("")
             if st.button(T("briefing_btn"), type="primary", use_container_width=True):
                 if dep and arr:
                     st.markdown("---")
                     st.success(f"✅ Route analysée : **{dep}** ➡️ **{arr}**")
-                    
                     col_met1, col_met2 = st.columns(2)
-                    
-                    # DEPART
                     with col_met1:
                         with st.container(border=True):
                             st.subheader(f"🛫 {dep}")
                             raw_met = get_real_metar(dep)
                             data_met = extract_metar_data(raw_met)
-                            
-                            # Indicateurs visuels
                             m1, m2, m3 = st.columns(3)
                             m1.metric("💨 Vent", data_met["Wind"])
                             m2.metric("🌡️ Temp", data_met["Temp"])
                             m3.metric("⏱️ QNH", data_met["QNH"])
-                            
                             with st.expander("📄 Voir Bulletin Brut (METAR/TAF)"):
                                 st.code(raw_met, language="text")
                                 st.caption("Prévisions (TAF) :")
                                 st.code(get_real_taf(dep), language="text")
-
-                    # ARRIVEE
                     with col_met2:
                         with st.container(border=True):
                             st.subheader(f"🛬 {arr}")
                             raw_met_arr = get_real_metar(arr)
                             data_met_arr = extract_metar_data(raw_met_arr)
-                            
-                            # Indicateurs visuels
                             m1, m2, m3 = st.columns(3)
                             m1.metric("💨 Vent", data_met_arr["Wind"])
                             m2.metric("🌡️ Temp", data_met_arr["Temp"])
                             m3.metric("⏱️ QNH", data_met_arr["QNH"])
-                            
                             with st.expander("📄 Voir Bulletin Brut (METAR/TAF)"):
                                 st.code(raw_met_arr, language="text")
                                 st.caption("Prévisions (TAF) :")
                                 st.code(get_real_taf(arr), language="text")
-                    
-                    # BOUTON SIMBRIEF
                     if ac:
                         simbrief_url = f"https://dispatch.simbrief.com/options/new?type={ac}&orig={dep}&dest={arr}"
                         st.markdown("---")
-                        st.markdown(f"""
-                        <div style="text-align: center;">
-                            <a href="{simbrief_url}" target="_blank" style="text-decoration: none;">
-                                <button style="background-color: #d32f2f; color: white; padding: 15px 30px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s;">
-                                    {T("briefing_simbrief")}
-                                </button>
-                            </a>
-                        </div>
-                        """, unsafe_allow_html=True)
-                else:
-                    st.error("Veuillez entrer au moins un aéroport de départ et d'arrivée.")
+                        st.markdown(f"""<div style="text-align: center;"><a href="{simbrief_url}" target="_blank" style="text-decoration: none;"><button style="background-color: #d32f2f; color: white; padding: 15px 30px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s;">{T("briefing_simbrief")}</button></a></div>""", unsafe_allow_html=True)
+                else: st.error("Veuillez entrer au moins un aéroport de départ et d'arrivée.")
 
     elif selection == T("menu_events"):
         st.title(T("event_title"))
@@ -796,7 +785,6 @@ else:
             p_dep = c_fp_3.text_input(T("form_dep"), max_chars=4, placeholder="NTAA").upper()
             p_arr = c_fp_4.text_input(T("form_arr"), max_chars=4, placeholder="KLAX").upper()
             st.markdown("---")
-            # RESTAURATION DES CHAMPS DATE/HEURE
             c_fp_5, c_fp_6 = st.columns(2)
             p_date_dep = c_fp_5.date_input(T("form_date_dep"))
             p_time_dep = c_fp_6.text_input(T("form_time_dep"), placeholder="HH:MM")
@@ -834,10 +822,8 @@ else:
                     st.code(raw, language="text")
                 else: st.error(raw)
 
-    # VALIDATION TOURS (RESTAURÉ VRAIE VERSION)
     elif selection == T("menu_tours"):
         st.title("🏆 Validation d'Étape de Tour")
-        st.info("Utilisez ce formulaire uniquement pour valider une étape de tour pilote.")
         with st.container(border=True):
             col_main1, col_main2 = st.columns(2)
             with col_main1:
@@ -856,14 +842,13 @@ else:
                 flight_time = st.text_input("Temps de vol (Block)", placeholder="ex: 01:45")
             comment = st.text_area("Lien du rapport fsHub (Optionnel) ou Remarques")
             
-            if st.button("✅ ENVOYER LA VALIDATION (Direct)", type="primary"):
+            if st.button("✅ ENVOYER LA VALIDATION", type="primary"):
                 subject = f"VALIDATION TOUR - {selected_tour} - Etape {leg_number} - {st.session_state['username']}"
                 body = f"PILOTE: {st.session_state['username']}\nTOUR: {selected_tour}\nETAPE: {leg_number}\nAVION: {aircraft}\nDEPART: {dep_icao}\nARRIVEE: {arr_icao}\nDATE: {date_flight}\nTEMPS: {flight_time}\nREMARQUES: {comment}"
                 res = send_email_via_ionos(subject, body)
                 if res is True: st.success(T("email_success"))
                 else: st.error(T("email_error") + str(res))
 
-    # CONTACT (CORRIGÉ BUG VARIABLE + DESIGN)
     elif selection == T("menu_contact"):
         st.title(T("contact_title"))
         c_contact_1, c_contact_2 = st.columns([1, 2])
