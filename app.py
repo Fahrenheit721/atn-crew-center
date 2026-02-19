@@ -19,7 +19,6 @@ st.set_page_config(page_title="ATN-Virtual | Crew Center", page_icon="🌺", lay
 if 'lang' not in st.session_state: st.session_state['lang'] = 'FR'
 
 # --- BANQUE DE QUESTIONS (EXAMEN ENTREE) ---
-# Tu peux modifier les questions et réponses ici directement
 QUIZ_DATA = [
     {
         "question": "Quelle est la signification de VFR ?",
@@ -73,22 +72,35 @@ QUIZ_DATA = [
     }
 ]
 
-# --- GESTION MEMOIRE (JSON) ---
-DB_FILE = "events_db.json"
-
+# --- GESTION MEMOIRE CLOUD (JSONBIN) ---
 def load_event_data():
-    if os.path.exists(DB_FILE):
-        try:
-            with open(DB_FILE, "r") as f:
-                return json.load(f)
-        except: return {}
+    try:
+        url = f"https://api.jsonbin.io/v3/b/{st.secrets['jsonbin']['bin_id']}"
+        headers = {
+            'X-Master-Key': st.secrets['jsonbin']['api_key']
+        }
+        req = requests.get(url, headers=headers)
+        if req.status_code == 200:
+            data = req.json()
+            # On récupère le record (en ignorant notre 'init: ok' du départ s'il y a d'autres données)
+            record = data.get('record', {})
+            if "init" in record and len(record) == 1:
+                return {}
+            return record
+    except:
+        pass
     return {}
 
 def save_event_data(data):
     try:
-        with open(DB_FILE, "w") as f:
-            json.dump(data, f)
-    except: pass
+        url = f"https://api.jsonbin.io/v3/b/{st.secrets['jsonbin']['bin_id']}"
+        headers = {
+            'Content-Type': 'application/json',
+            'X-Master-Key': st.secrets['jsonbin']['api_key']
+        }
+        requests.put(url, json=data, headers=headers)
+    except:
+        pass
 
 # --- DICTIONNAIRE DE TRADUCTION ---
 TRANS = {
@@ -193,7 +205,7 @@ TRANS = {
         "briefing_ac": "✈️ Aircraft",
         "briefing_btn": "📡 ANALYZE ROUTE",
         "briefing_simbrief": "🚀 GENERATE OFP (SimBrief)",
-        "pirep_title": "Submit Manual PIREP",
+        "pirep_title": "📝 Submit Manual PIREP",
         "pirep_intro": "Backup Form",
         "pirep_warn": "This form is intended for pilots experiencing technical issues with the tracking client (LRM). Please use the automated client whenever possible for data accuracy.",
         "pirep_send": "📤 SUBMIT REPORT",
@@ -263,7 +275,7 @@ TRANS = {
         "briefing_ac": "Tipo de Avión",
         "briefing_btn": "Generar Briefing",
         "briefing_simbrief": "🚀 Abrir en SimBrief",
-        "pirep_title": "Enviar PIREP Manual",
+        "pirep_title": "📝 Enviar PIREP Manual",
         "pirep_intro": "Formulario de Respaldo",
         "pirep_warn": "Este formulario está reservado para pilotos con problemas técnicos en el cliente (LRM). Se recomienda usar el cliente automático para mayor precisión.",
         "pirep_send": "📤 ENVIAR REPORTE",
@@ -553,7 +565,7 @@ def login_page():
                     st.markdown(f"**Question {st.session_state['quiz_index']+1}/{len(QUIZ_DATA)}**")
                     st.write(q_data['question'])
                     
-                    # Choix réponse (clé unique pour éviter conflit)
+                    # Choix réponse
                     choice = st.radio("Votre réponse :", q_data['options'], key=f"q_{st.session_state['quiz_index']}")
                     
                     if st.button("Valider la réponse"):
@@ -593,14 +605,14 @@ def login_page():
                     r_prenom = st.text_input("Prénom *")
                     r_email = st.text_input("Email *")
                     r_vid = st.text_input("VID IVAO *")
-                    r_dob = st.date_input("Date de naissance *", min_value=date(1950, 1, 1), max_value=date.today())
+                    r_dob = st.date_input("Date de naissance *", min_value=date(1950, 1, 1), max_value=date.today(), format="DD/MM/YYYY")
                     st.markdown("Veuillez lire le règlement : [Règlement Intérieur](https://www.atnvirtual.fr/about-4)")
                     r_rules = st.checkbox("J'ai lu et j'accepte le règlement du site *")
                     
                     submitted = st.form_submit_button("Envoyer ma candidature")
                     if submitted:
                         if not r_nom or not r_prenom or not r_email or not r_vid or not r_rules:
-                            st.warning("⚠️ Veuillez remplir tous les champs obligatoires.")
+                            st.warning("⚠️ Veuillez remplir tous les champs obligatoires et accepter le règlement.")
                         else:
                             today = date.today()
                             age = today.year - r_dob.year - ((today.month, today.day) < (r_dob.month, r_dob.day))
@@ -613,11 +625,11 @@ def login_page():
                             Prénom : {r_prenom}
                             Email : {r_email}
                             VID IVAO : {r_vid}
-                            Date de Naissance : {r_dob}
+                            Date de Naissance : {r_dob.strftime('%d/%m/%Y')}
                             Âge Calculé : {age} ans
                             Score Examen : {st.session_state['quiz_score']}/10
                             
-                            Action : Vérifier VID + Âge (Min 16 ans).
+                            Action : Vérifier VID + Âge (Si < 16 ans, refuser).
                             """
                             if send_email_via_ionos(subject, body) is True:
                                 st.success("✅ Candidature envoyée ! Le Staff vous contactera.")
@@ -643,18 +655,21 @@ def login_page():
                     else: st.error("❌ Erreur connexion")
             
             st.write("")
-            c_reg1, c_reg2, c_reg3 = st.columns([1, 2, 1])
-            with c_reg2:
-                if st.button("📝 Créer un compte"):
-                    st.session_state['show_register'] = True
-                    st.rerun()
-            
             st.markdown("---")
             with st.container(border=True):
                 st.markdown("<h3 class='center-text'>🌟 Rejoignez l'aventure !</h3>", unsafe_allow_html=True)
                 st.markdown("""<div style='text-align: center; color: #57606a; margin-bottom: 20px;'>Embarquez pour une expérience immersive au cœur du Pacifique. Du vol inter-îles en ATR au long-courrier en Dreamliner, vivez la simulation autrement dans une ambiance conviviale et professionnelle.</div>""", unsafe_allow_html=True)
+                
+                # BOUTON CRÉER UN COMPTE CENTRÉ ICI
+                c_reg1, c_reg2, c_reg3 = st.columns([1, 2, 1])
+                with c_reg2:
+                    if st.button("📝 Créer un compte", use_container_width=True):
+                        st.session_state['show_register'] = True
+                        st.rerun()
+                
+                st.markdown("<hr style='margin-top: 10px; margin-bottom: 20px;'>", unsafe_allow_html=True)
                 c_invit1, c_invit2 = st.columns(2)
-                with c_invit1: st.link_button("📝 Inscription fsHub", "https://fshub.io/airline/THT/overview", use_container_width=True)
+                with c_invit1: st.link_button("🔗 Inscription fsHub", "https://fshub.io/airline/THT/overview", use_container_width=True)
                 with c_invit2: st.link_button("🌐 Notre Site Web", "https://www.atnvirtual.fr/", use_container_width=True)
 
 if not st.session_state['logged_in']:
