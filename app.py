@@ -415,7 +415,7 @@ ROSTER_DATA = [
     {"id": "THT1009", "nom": "Daniel V.", "grade": "EP", "role": "Pilote", "fshub_id": "28217", "default": "0h"}, 
     {"id": "THT1010", "nom": "Kévin", "grade": "EP", "role": "Pilote", "fshub_id": "28382", "default": "5h"}
 ]
-LISTE_TOURS = ["Tiare IFR Tour", "World ATN Tour IFR", "Tamure Tour VFR", "Taura'a VFR Tour"]
+LISTE_TOURS = ["Tiare IFR Tour", "World ATN Tour IFR", "ATN Euro Capitals Tour 2026", "Taura'a VFR Tour"]
 
 # --- 4. FONCTIONS ---
 def get_real_metar(icao_code):
