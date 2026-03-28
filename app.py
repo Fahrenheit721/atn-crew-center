@@ -945,7 +945,7 @@ else:
             with col_main1:
                 st.write("### 📍 Informations Tour")
                 selected_tour = st.selectbox("Sélectionner le Tour concerné", LISTE_TOURS)
-                leg_number = st.number_input("Numéro de l'étape", min_value=1, max_value=12, value=1, step=1)
+                leg_number = st.number_input("Numéro de l'étape", min_value=1, max_value=18, value=1, step=1)
                 st.write("### ✈️ Informations Vol")
                 callsign = st.text_input("Callsign", value=st.session_state['username'], disabled=True)
                 aircraft = st.text_input("Appareil utilisé", placeholder="ex: B789")
